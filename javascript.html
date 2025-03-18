@@ -1,0 +1,2172 @@
+<!-- 
+  Quản lý hợp tác xã - Script xử lý JavaScript
+  Version: 2.0.1
+  
+  FILE: javascript.html - Chứa code JavaScript cho client
+-->
+
+<script type="text/javascript">
+  // Cấu hình ứng dụng
+  const APP_CONFIG = {
+    dateFormat: "d/m/Y",
+    timezone: "Asia/Ho_Chi_Minh",
+    chartColors: [
+      "#1976D2", "#FFA000", "#43A047", "#E53935", "#5E35B1",
+      "#1E88E5", "#FFB300", "#4CAF50", "#F44336", "#7E57C2",
+      "#2196F3", "#FFC107", "#66BB6A", "#EF5350", "#9575CD"
+    ]
+  };
+  
+  // Biến toàn cục
+  let districtWardMapping = {};
+  let allWards = [];
+  let htxData = [];
+  let filteredData = [];
+  let rowToEditOrDelete = -1;
+  let columnToEdit = -1;
+  let flatpickrInstance;
+  let currentUserInfo = null;
+  let chartInstances = {};
+  
+  // Hàm định dạng số theo chuẩn VN
+  function formatNumber(number) {
+    if (number === null || number === undefined || number === '') return '';
+    
+    // Xử lý với số được lưu dưới dạng chuỗi có chứa dấu chấm hoặc dấu phẩy
+    if (typeof number === 'string') {
+      number = number.replace(/\./g, '').replace(/,/g, '.');
+    }
+    
+    // Chuyển đổi thành số
+    const numValue = parseFloat(number);
+    if (isNaN(numValue)) return number; // Nếu không phải số, trả về giá trị gốc
+    
+    // Định dạng số với dấu chấm phân cách hàng nghìn theo chuẩn VN
+    return new Intl.NumberFormat('vi-VN', { 
+      maximumFractionDigits: 0,
+      useGrouping: true
+    }).format(numValue);
+  }
+  
+  // Định dạng số theo mẫu xxxx.xxx.xxx (4.3.3)
+  function formatCodeNumber(number) {
+    if (!number) return '';
+    
+    // Loại bỏ tất cả các ký tự không phải số
+    const cleanNum = number.toString().replace(/[^\d]/g, '');
+    
+    // Nếu số quá ngắn, trả về giá trị gốc
+    if (cleanNum.length < 4) return number;
+    
+    // Phân tách số theo mẫu xxxx.xxx.xxx
+    let formatted = cleanNum;
+    if (cleanNum.length >= 10) {  // Đủ dài cho mẫu 4.3.3
+      formatted = cleanNum.substring(0, 4) + '.' + 
+                 cleanNum.substring(4, 7) + '.' +
+                 cleanNum.substring(7);
+    } else if (cleanNum.length >= 7) {  // Đủ dài cho mẫu 4.3
+      formatted = cleanNum.substring(0, 4) + '.' + 
+                 cleanNum.substring(4);
+    } else if (cleanNum.length >= 4) {  // Chỉ đủ phần đầu tiên
+      formatted = cleanNum.substring(0, 4) + '.' + 
+                 cleanNum.substring(4);
+    }
+    
+    return formatted;
+  }
+  
+  // Hàm định dạng ngày về dạng dd/mm/yyyy
+  function formatDate(dateValue) {
+    if (!dateValue) return '';
+    
+    // Kiểm tra xem dateValue có phải là đối tượng Date hay không
+    const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+    
+    // Kiểm tra xem date có phải là một ngày hợp lệ hay không
+    if (isNaN(date.getTime())) return dateValue;
+    
+    // Lấy ngày, tháng, năm
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Tháng bắt đầu từ 0
+    const year = date.getFullYear();
+    
+    // Trả về định dạng dd/mm/yyyy
+    return `${day}/${month}/${year}`;
+  }
+
+  // Hàm định dạng ngày thay thế cho Utilities.formatDate ở client-side
+  function formatDateManually(date) {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+  }
+
+  // Hàm trích xuất năm từ định dạng dd/mm/yyyy
+  function extractYear(dateString) {
+    if (!dateString) return '';
+    
+    // Kiểm tra xem dateString có phải là một chuỗi
+    if (typeof dateString !== 'string') {
+      return '';
+    }
+    
+    // Trích xuất năm từ định dạng dd/mm/yyyy
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+      return parts[2].trim(); // Năm nằm ở phần tử thứ 3
+    }
+    
+    return '';
+  }
+  
+  // Hàm định dạng trạng thái với badge màu
+  function formatStatus(status) {
+    if (!status) return '';
+    
+    switch(status.toLowerCase()) {
+      case 'hoạt động':
+      case 'đang hoạt động':
+        return `<span class="badge badge-active">${status}</span>`;
+      case 'không hoạt động':
+      case 'giải thể':
+        return `<span class="badge badge-inactive">${status}</span>`;
+      case 'chờ phê duyệt':
+      case 'tạm ngưng':
+      case 'ngưng hoạt động':
+      case 'ngừng hoạt động':
+        return `<span class="badge badge-pending">${status}</span>`;
+      default:
+        return status;
+    }
+  }
+  
+  // Khởi tạo ứng dụng
+  google.charts.load('current', { packages: ['corechart', 'table', 'controls'] });
+  google.charts.setOnLoadCallback(initializeApp);
+  
+  function initializeApp() {
+    loadUserInfo();
+    loadData();
+  }
+  
+  // Tải thông tin người dùng
+  function loadUserInfo() {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.success && result.data) {
+          currentUserInfo = result.data;
+          updateUserInfoDisplay(currentUserInfo);
+        } else {
+          console.error("Không thể lấy thông tin người dùng:", result);
+        }
+      })
+      .withFailureHandler(handleError)
+      .handleRequest({action: 'getUserInfo'});
+  }
+  
+// Cập nhật hiển thị thông tin người dùng
+function updateUserInfoDisplay(userInfo) {
+  const userInfoDiv = document.getElementById('userInfo');
+  if (userInfoDiv) {
+    userInfoDiv.innerHTML = `
+      <div class="org-info">
+        <div class="designer-info">
+          <i class="bi bi-person-workspace"></i> Lê Tiến Quân &nbsp;&nbsp;|&nbsp;&nbsp; 
+          <i class="bi bi-envelope"></i> giangchaugc@gmail.com
+        </div>
+        <div class="time-info">
+          <i class="bi bi-clock"></i> <span id="currentTime"></span>
+        </div>
+      </div>
+    `;
+    
+    // Cập nhật thời gian ngay lập tức
+    updateCurrentTime();
+  }
+}
+  
+  // Cập nhật hiển thị thời gian hiện tại theo giờ Việt Nam
+function updateCurrentTime() {
+  const timeElement = document.getElementById('currentTime');
+  if (!timeElement) return; // Kiểm tra nếu phần tử không tồn tại thì thoát
+  
+  // Lấy thời gian hiện tại theo múi giờ Việt Nam (UTC+7)
+  const now = new Date();
+  const options = { 
+    timeZone: 'Asia/Ho_Chi_Minh',
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  };
+
+  try {
+    const formattedTime = new Intl.DateTimeFormat('vi-VN', options).format(now);
+    timeElement.textContent = formattedTime;
+  } catch (error) {
+    // Fallback nếu định dạng không được hỗ trợ
+    const vietnamTime = new Date(now.getTime() + 7 * 60 * 60 * 1000); // UTC+7
+    timeElement.textContent = vietnamTime.toLocaleString('vi-VN');
+  }
+}
+  
+  // Tải dữ liệu từ Google Sheets
+  function loadData() {
+    // Hiển thị loading
+    document.getElementById('htxData').innerHTML = `
+      <tr>
+        <td colspan="20" class="text-center p-5">
+          <div class="loading-spinner">
+            <div class="spinner-border" role="status">
+              <span class="sr-only">Đang tải...</span>
+            </div>
+            <p class="mt-3">Đang tải dữ liệu...</p>
+          </div>
+        </td>
+      </tr>
+    `;
+    
+    // Tải dữ liệu tham chiếu
+    loadReferenceData();
+    
+    // Tải dữ liệu HTX
+    loadHTXData();
+  }
+  
+  // Tải dữ liệu tham chiếu
+  function loadReferenceData() {
+    const selectSpreadsheetId = '1qLPAkZOPtNHAouaP2-_Cc94IaHCB3Sk9GF0X9DsKc4o';
+    
+    const industryQuery = new google.visualization.Query(`https://docs.google.com/spreadsheets/d/${selectSpreadsheetId}/gviz/tq?sheet=SELECT&headers=1&tq=SELECT D WHERE D IS NOT NULL`);
+    // Cập nhật: Bổ sung truy vấn cho loại hình (cột E) và cập nhật trạng thái sang cột F 
+    const typeQuery = new google.visualization.Query(`https://docs.google.com/spreadsheets/d/${selectSpreadsheetId}/gviz/tq?sheet=SELECT&headers=1&tq=SELECT E WHERE E IS NOT NULL`);
+    const statusQuery = new google.visualization.Query(`https://docs.google.com/spreadsheets/d/${selectSpreadsheetId}/gviz/tq?sheet=SELECT&headers=1&tq=SELECT F WHERE F IS NOT NULL`);
+    const ethnicityQuery = new google.visualization.Query(`https://docs.google.com/spreadsheets/d/${selectSpreadsheetId}/gviz/tq?sheet=SELECT&headers=1&tq=SELECT C WHERE C IS NOT NULL`);
+    const districtWardQuery = new google.visualization.Query(`https://docs.google.com/spreadsheets/d/${selectSpreadsheetId}/gviz/tq?sheet=SELECT&headers=1&tq=SELECT A, B WHERE A IS NOT NULL AND B IS NOT NULL`);
+
+    console.log("Đang tải dữ liệu tham chiếu từ Google Sheets...");
+    industryQuery.send(handleIndustryResponse);
+    typeQuery.send(handleTypeResponse); // Thêm xử lý truy vấn cho loại hình
+    statusQuery.send(handleStatusResponse);
+    ethnicityQuery.send(handleEthnicityResponse);
+    districtWardQuery.send(handleDistrictWardResponse);
+  }
+  
+  // Tải dữ liệu HTX
+  function loadHTXData() {
+    const htxSpreadsheetId = '1M98H4rqyFMu-vWubMEcxPoDDitezN2vfCgV-nzxEtgs';
+    // Cập nhật truy vấn để lấy thêm cột Q (loại hình) và R (trạng thái - đã dịch từ Q)
+    const htxQuery = new google.visualization.Query(`https://docs.google.com/spreadsheets/d/${htxSpreadsheetId}/gviz/tq?sheet=HTX&headers=1&tq=SELECT A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R`);
+    
+    htxQuery.send(handleHtxResponse);
+  }
+    
+  // Xử lý kết quả trả về dữ liệu HTX
+  function handleHtxResponse(response) {
+    if (response.isError()) {
+      console.error('Lỗi khi tải dữ liệu HTX:', response.getMessage(), response.getDetailedMessage());
+      document.getElementById('htxData').innerHTML = `
+        <tr>
+          <td colspan="20" class="text-center text-danger p-4">
+            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+            <p>Lỗi khi tải dữ liệu: ${response.getMessage()}</p>
+            <button class="btn btn-outline-primary mt-2" onclick="loadData()">
+              <i class="fas fa-sync mr-2"></i>Thử lại
+            </button>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const data = response.getDataTable();
+    const numRows = data.getNumberOfRows();
+    console.log(`Đã nhận ${numRows} dòng dữ liệu HTX`);
+    
+    document.getElementById('htxData').innerHTML = '';
+    htxData = [];
+    
+    // Tập hợp các năm thành lập để dùng cho bộ lọc
+    const yearsSet = new Set();
+    
+    for (let i = 0; i < numRows; i++) {
+      const establishDateValue = data.getValue(i, 1);
+      const establishDateFormatted = formatDate(establishDateValue) || '';
+      
+      // Trích xuất năm từ ngày thành lập
+      const establishYear = extractYear(establishDateFormatted);
+      if (establishYear) {
+        yearsSet.add(establishYear);
+      }
+      
+      const capitalValue = data.getValue(i, 10) || '';
+      const codeValue = data.getValue(i, 2) || '';
+      const phoneValue = data.getValue(i, 11) || '';
+      const membersValue = data.getValue(i, 12) || '';
+      const totalLaborValue = data.getValue(i, 13) || '';
+      const memberLaborValue = data.getValue(i, 14) || '';
+      const hiredLaborValue = data.getValue(i, 15) || '';
+      const typeValue = data.getValue(i, 16) || '';    // Loại hình (cột Q)
+      const statusValue = data.getValue(i, 17) || '';  // Trạng thái (cột R - đã dịch từ cột Q)
+      
+      const rowData = {
+        rowIndex: i,
+        name: data.getValue(i, 0) || '',
+        establishDate: establishDateValue,
+        establishYear: establishDateFormatted, // Định dạng ngày thành lập
+        establishYearOnly: establishYear, // Chỉ lấy năm
+        code: codeValue, // Giá trị gốc mã số HTX
+        codeFormatted: formatCodeNumber(codeValue), // Định dạng xxxx.xxx.xxx
+        representative: data.getValue(i, 3) || '',
+        gender: data.getValue(i, 4) || '',
+        birthdate: formatDate(data.getValue(i, 5)) || '', // Định dạng ngày sinh
+        ethnicity: data.getValue(i, 6) || '', 
+        industry: data.getValue(i, 7) || '',
+        district: data.getValue(i, 8) || '',
+        ward: data.getValue(i, 9) || '',
+        capital: capitalValue, // Lưu giá trị gốc để dễ xử lý khi cần
+        capitalFormatted: formatNumber(capitalValue), // Giá trị hiển thị đã định dạng
+        phone: phoneValue, // Giá trị gốc số điện thoại
+        phoneFormatted: formatCodeNumber(phoneValue), // Định dạng xxxx.xxx.xxx
+        members: membersValue,
+        membersFormatted: formatNumber(membersValue),
+        totalLabor: totalLaborValue,
+        totalLaborFormatted: formatNumber(totalLaborValue),
+        memberLabor: memberLaborValue,
+        memberLaborFormatted: formatNumber(memberLaborValue),
+        hiredLabor: hiredLaborValue,
+        hiredLaborFormatted: formatNumber(hiredLaborValue),
+        type: typeValue ? typeValue.trim() : '',      // Đảm bảo cắt khoảng trắng của loại hình
+        status: statusValue,                      // Cập nhật trạng thái từ cột mới
+        statusFormatted: formatStatus(statusValue)
+      };
+      
+      htxData.push(rowData);
+      
+      const tr = document.createElement('tr');
+      tr.id = `row-${i}`;
+      tr.dataset.rowIndex = i;
+      
+      tr.innerHTML = `
+        <td class="text-center table-fixed-columns"></td>
+        <td class="table-fixed-columns">${rowData.name}</td>
+        <td class="text-center">${rowData.establishYear}</td>
+        <td class="text-right">${rowData.codeFormatted}</td>
+        <td>${rowData.representative}</td>
+        <td class="text-center">${rowData.gender}</td>
+        <td class="text-center">${rowData.birthdate}</td>
+        <td>${rowData.ethnicity}</td>
+        <td>${rowData.industry}</td>
+        <td>${rowData.district}</td>
+        <td>${rowData.ward}</td>
+        <td class="text-right number-cell">${rowData.capitalFormatted}</td>
+        <td class="text-center">${rowData.phoneFormatted}</td>
+        <td class="text-right number-cell">${rowData.membersFormatted}</td>
+        <td class="text-right number-cell">${rowData.totalLaborFormatted}</td>
+        <td class="text-right number-cell">${rowData.memberLaborFormatted}</td>
+        <td class="text-right number-cell">${rowData.hiredLaborFormatted}</td>
+        <td>${rowData.type}</td>
+        <td class="text-center">${rowData.statusFormatted}</td>
+        <td class="action-cell table-fixed-columns-right">
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${i})">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteRow(${i})">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </td>
+      `;
+      
+      document.getElementById('htxData').appendChild(tr);
+    }
+    
+    // Cập nhật bộ lọc năm từ dữ liệu HTX
+    updateYearFilter(yearsSet);
+    
+    // Lưu lại dữ liệu đã lọc
+    filteredData = [...htxData];
+    
+    updateRowNumbers();
+    updateStripedRows();
+    updateDataStats();
+    
+    // Tạo biểu đồ thống kê khi cần (không tự động hiển thị)
+    prepareCharts();
+
+    // In ra các giá trị loại hình để debug
+    console.log("Các loại hình có trong dữ liệu:", [...new Set(htxData.map(item => item.type))]);
+  }
+  
+  // Xử lý dữ liệu loại hình (hàm mới)
+  function handleTypeResponse(response) {
+    if (response.isError()) {
+      console.error('Lỗi khi tải dữ liệu loại hình:', response.getMessage(), response.getDetailedMessage());
+      return;
+    }
+
+    const data = response.getDataTable();
+    const typeFilter = document.getElementById('typeFilter');
+    const typeSelect = document.getElementById('typeSelect');
+    const numRows = data.getNumberOfRows();
+    console.log(`Đã nhận ${numRows} dòng dữ liệu loại hình`);
+
+    const typeSet = new Set();
+
+    for (let i = 0; i < numRows; i++) {
+      const type = data.getValue(i, 0);
+      if (type && typeof type === 'string' && type.trim() !== '') {
+        typeSet.add(type.trim()); // Đảm bảo loại bỏ khoảng trắng thừa
+      }
+    }
+
+    // Cập nhật cho filter dropdown
+    while (typeFilter.options.length > 1) {
+      typeFilter.remove(1);
+    }
+    
+    // Cập nhật cho modal dropdown
+    while (typeSelect.options.length > 0) {
+      typeSelect.remove(0);
+    }
+    
+    // Thêm option mặc định cho modal dropdown
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.textContent = "-- Chọn loại hình --";
+    typeSelect.appendChild(defaultOption);
+
+    const typeArray = Array.from(typeSet).sort();
+    console.log("Các loại hình trong dữ liệu tham chiếu:", typeArray);
+
+    typeArray.forEach(type => {
+      // Thêm cho filter
+      const option1 = document.createElement('option');
+      option1.value = type;
+      option1.textContent = type;
+      typeFilter.appendChild(option1);
+      
+      // Thêm cho modal
+      const option2 = document.createElement('option');
+      option2.value = type;
+      option2.textContent = type;
+      typeSelect.appendChild(option2);
+    });
+    
+    // Thêm vào dropdown thêm mới
+    const addType = document.getElementById('addType');
+    if (addType) {
+      while (addType.options.length > 1) {
+        addType.remove(1);
+      }
+      
+      typeArray.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        addType.appendChild(option);
+      });
+    }
+  }
+  
+  // Chuẩn bị dữ liệu biểu đồ nhưng chưa hiển thị
+  function prepareCharts() {
+    // Cập nhật số liệu tổng quan
+    updateDashboardStats();
+  }
+  
+  // Hiển thị modal thống kê và tạo biểu đồ
+  function showStatsModal() {
+    // Tạo biểu đồ trước khi hiển thị modal
+    createCharts();
+    
+    // Hiện modal
+    $('#statsModal').modal('show');
+  }
+  
+  // Tạo biểu đồ thống kê
+  function createCharts() {
+    // Lấy dữ liệu từ server cho các biểu đồ
+    fetchChartData('district');
+    fetchChartData('industry');
+    fetchChartData('type');     // Thêm biểu đồ loại hình
+    fetchChartData('status');
+    fetchChartData('year');
+  }
+  
+  // Lấy dữ liệu biểu đồ từ server
+  function fetchChartData(chartType) {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.success && result.data) {
+          renderChart(chartType, result.data);
+        } else {
+          console.error(`Lỗi khi lấy dữ liệu biểu đồ ${chartType}:`, result?.message || 'Không có dữ liệu');
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error(`Lỗi khi lấy dữ liệu biểu đồ ${chartType}:`, error);
+      })
+      .handleRequest({
+        action: 'getChartData',
+        chartType: chartType
+      });
+  }
+  
+  // Hiển thị biểu đồ
+  function renderChart(chartType, chartData) {
+    const containerId = `${chartType}Chart`;
+    const container = document.getElementById(containerId);
+    
+    if (!container) {
+      console.error(`Không tìm thấy container cho biểu đồ ${chartType}`);
+      return;
+    }
+    
+    // Xóa biểu đồ cũ nếu có
+    if (chartInstances[chartType]) {
+      chartInstances[chartType].destroy();
+    }
+    
+    // Xử lý dữ liệu biểu đồ
+    const labels = chartData.data.map(item => item.label);
+    const values = chartData.data.map(item => item.value);
+    const colors = APP_CONFIG.chartColors.slice(0, labels.length);
+    
+    // Tạo biểu đồ mới
+    const ctx = container.getContext('2d');
+    
+    if (chartType === 'year') {
+      // Biểu đồ cột cho phân bố theo năm
+      chartInstances[chartType] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Số lượng HTX',
+            data: values,
+            backgroundColor: colors,
+            borderColor: colors.map(color => color),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'Phân bố HTX theo năm thành lập',
+              font: {
+                size: 16
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+    } else {
+      // Biểu đồ tròn cho các loại khác
+      chartInstances[chartType] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: colors,
+            borderColor: 'white',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                boxWidth: 15,
+                font: {
+                  size: 12
+                }
+              }
+            },
+            title: {
+              display: true,
+              text: getTitleForChart(chartType),
+              font: {
+                size: 16
+              }
+            }
+          },
+          cutout: '60%'
+        }
+      });
+    }
+  }
+  
+  // Lấy tiêu đề cho biểu đồ
+  function getTitleForChart(chartType) {
+    switch (chartType) {
+      case 'district': return 'Phân bố HTX theo huyện/thành phố';
+      case 'industry': return 'Phân bố HTX theo ngành nghề';
+      case 'type': return 'Phân bố HTX theo loại hình'; // Thêm tiêu đề biểu đồ loại hình
+      case 'status': return 'Phân bố HTX theo trạng thái hoạt động';
+      case 'year': return 'Phân bố HTX theo năm thành lập';
+      case 'capital': return 'Top 10 HTX có vốn điều lệ lớn nhất';
+      default: return '';
+    }
+  }
+  
+  // Cập nhật thống kê tổng quan
+  function updateDashboardStats() {
+    // Tính tổng vốn điều lệ
+    let totalCapital = 0;
+    let totalMembers = 0;
+    let totalLabor = 0;
+    let activeCount = 0;
+    
+    htxData.forEach(htx => {
+      // Tổng vốn điều lệ
+      if (htx.capital) {
+        const capital = parseFloat(htx.capital.toString().replace(/\./g, '').replace(/,/g, '.'));
+        if (!isNaN(capital)) {
+          totalCapital += capital;
+        }
+      }
+      
+      // Tổng số thành viên
+      if (htx.members) {
+        const members = parseInt(htx.members);
+        if (!isNaN(members)) {
+          totalMembers += members;
+        }
+      }
+      
+      // Tổng số lao động
+      if (htx.totalLabor) {
+        const labor = parseInt(htx.totalLabor);
+        if (!isNaN(labor)) {
+          totalLabor += labor;
+        }
+      }
+      
+      // Đếm số HTX đang hoạt động
+      if (htx.status && (
+          htx.status.toLowerCase() === 'hoạt động' || 
+          htx.status.toLowerCase() === 'đang hoạt động')) {
+        activeCount++;
+      }
+    });
+    
+    // Cập nhật hiển thị
+    document.getElementById('totalHTX').textContent = htxData.length.toLocaleString('vi-VN');
+    document.getElementById('activeHTX').textContent = activeCount.toLocaleString('vi-VN');
+    document.getElementById('totalCapital').textContent = formatNumber(totalCapital);
+    document.getElementById('totalMembers').textContent = totalMembers.toLocaleString('vi-VN');
+    document.getElementById('avgCapital').textContent = formatNumber(htxData.length > 0 ? Math.round(totalCapital / htxData.length) : 0);
+    document.getElementById('avgMembers').textContent = htxData.length > 0 ? Math.round(totalMembers / htxData.length).toLocaleString('vi-VN') : '0';
+  }
+  
+  // Cập nhật bộ lọc năm từ dữ liệu HTX
+  function updateYearFilter(yearsSet) {
+    const yearFilter = document.getElementById('yearFilter');
+    
+    // Xóa tùy chọn cũ, giữ lại tùy chọn "Tất cả"
+    while (yearFilter.options.length > 1) {
+      yearFilter.remove(1);
+    }
+    
+    // Sắp xếp năm giảm dần (mới nhất lên đầu)
+    const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
+    
+    // Thêm các tùy chọn năm mới
+    sortedYears.forEach(year => {
+      const option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      yearFilter.appendChild(option);
+    });
+    
+    console.log(`Đã cập nhật ${sortedYears.length} năm thành lập cho bộ lọc`);
+  }
+
+  // Xử lý dữ liệu ngành nghề
+  function handleIndustryResponse(response) {
+    if (response.isError()) {
+      console.error('Lỗi khi tải dữ liệu ngành nghề:', response.getMessage(), response.getDetailedMessage());
+      return;
+    }
+
+    const data = response.getDataTable();
+    const industryFilter = document.getElementById('industryFilter');
+    const industrySelect = document.getElementById('industrySelect');
+    const numRows = data.getNumberOfRows();
+    console.log(`Đã nhận ${numRows} dòng dữ liệu ngành nghề`);
+
+    const industriesSet = new Set();
+
+    for (let i = 0; i < numRows; i++) {
+      const industry = data.getValue(i, 0);
+      if (industry && typeof industry === 'string' && industry.trim() !== '') {
+        industriesSet.add(industry);
+      }
+    }
+
+    // Cập nhật cho filter dropdown
+    while (industryFilter.options.length > 1) {
+      industryFilter.remove(1);
+    }
+
+    // Cập nhật cho modal dropdown
+    while (industrySelect.options.length > 0) {
+      industrySelect.remove(0);
+    }
+
+    // Thêm option mặc định cho modal dropdown
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.textContent = "-- Chọn ngành nghề --";
+    industrySelect.appendChild(defaultOption);
+
+    Array.from(industriesSet).sort().forEach(industry => {
+      // Thêm cho filter
+      const option1 = document.createElement('option');
+      option1.value = industry;
+      option1.textContent = industry;
+      industryFilter.appendChild(option1);
+      
+      // Thêm cho modal
+      const option2 = document.createElement('option');
+      option2.value = industry;
+      option2.textContent = industry;
+      industrySelect.appendChild(option2);
+    });
+    
+    // Thêm vào dropdown thêm mới
+    const addIndustry = document.getElementById('addIndustry');
+    if (addIndustry) {
+      while (addIndustry.options.length > 1) {
+        addIndustry.remove(1);
+      }
+      
+      Array.from(industriesSet).sort().forEach(industry => {
+        const option = document.createElement('option');
+        option.value = industry;
+        option.textContent = industry;
+        addIndustry.appendChild(option);
+      });
+    }
+  }
+  
+  // Xử lý dữ liệu trạng thái
+  function handleStatusResponse(response) {
+    if (response.isError()) {
+      console.error('Lỗi khi tải dữ liệu trạng thái:', response.getMessage(), response.getDetailedMessage());
+      return;
+    }
+
+    const data = response.getDataTable();
+    const statusFilter = document.getElementById('statusFilter');
+    const statusSelect = document.getElementById('statusSelect');
+    const numRows = data.getNumberOfRows();
+    console.log(`Đã nhận ${numRows} dòng dữ liệu trạng thái`);
+
+    const statusSet = new Set();
+
+    for (let i = 0; i < numRows; i++) {
+      const status = data.getValue(i, 0);
+      if (status && typeof status === 'string' && status.trim() !== '') {
+        statusSet.add(status);
+      }
+    }
+
+    // Cập nhật cho filter dropdown
+    while (statusFilter.options.length > 1) {
+      statusFilter.remove(1);
+    }
+    
+    // Cập nhật cho modal dropdown
+    while (statusSelect.options.length > 0) {
+      statusSelect.remove(0);
+    }
+    
+    // Thêm option mặc định cho modal dropdown
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.textContent = "-- Chọn trạng thái --";
+    statusSelect.appendChild(defaultOption);
+
+    Array.from(statusSet).sort().forEach(status => {
+      // Thêm cho filter
+      const option1 = document.createElement('option');
+      option1.value = status;
+      option1.textContent = status;
+      statusFilter.appendChild(option1);
+      
+      // Thêm cho modal
+      const option2 = document.createElement('option');
+      option2.value = status;
+      option2.textContent = status;
+      statusSelect.appendChild(option2);
+    });
+    
+    // Thêm vào dropdown thêm mới
+    const addStatus = document.getElementById('addStatus');
+    if (addStatus) {
+      while (addStatus.options.length > 1) {
+        addStatus.remove(1);
+      }
+      
+      Array.from(statusSet).sort().forEach(status => {
+        const option = document.createElement('option');
+        option.value = status;
+        option.textContent = status;
+        addStatus.appendChild(option);
+      });
+    }
+  }
+  
+  // Xử lý dữ liệu dân tộc
+  function handleEthnicityResponse(response) {
+    if (response.isError()) {
+      console.error('Lỗi khi tải dữ liệu dân tộc:', response.getMessage(), response.getDetailedMessage());
+      return;
+    }
+
+    const data = response.getDataTable();
+    const ethnicityFilter = document.getElementById('ethnicityFilter');
+    const ethnicitySelect = document.getElementById('ethnicitySelect');
+    const numRows = data.getNumberOfRows();
+    console.log(`Đã nhận ${numRows} dòng dữ liệu dân tộc`);
+
+    const ethnicitiesSet = new Set();
+
+    for (let i = 0; i < numRows; i++) {
+      const ethnicity = data.getValue(i, 0);
+      if (ethnicity && typeof ethnicity === 'string' && ethnicity.trim() !== '') {
+        ethnicitiesSet.add(ethnicity);
+      }
+    }
+
+    // Cập nhật cho filter dropdown
+    while (ethnicityFilter.options.length > 1) {
+      ethnicityFilter.remove(1);
+    }
+    
+    // Cập nhật cho modal dropdown
+    while (ethnicitySelect.options.length > 0) {
+      ethnicitySelect.remove(0);
+    }
+    
+    // Thêm option mặc định cho modal dropdown
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.textContent = "-- Chọn dân tộc --";
+    ethnicitySelect.appendChild(defaultOption);
+
+    // Thêm mặc định dân tộc Kinh lên đầu
+    const kinhOption1 = document.createElement('option');
+    kinhOption1.value = "Kinh";
+    kinhOption1.textContent = "Kinh";
+    ethnicityFilter.insertBefore(kinhOption1, ethnicityFilter.options[1]);
+    
+    const kinhOption2 = document.createElement('option');
+    kinhOption2.value = "Kinh";
+    kinhOption2.textContent = "Kinh";
+    ethnicitySelect.appendChild(kinhOption2);
+    
+    // Thêm các dân tộc khác
+    Array.from(ethnicitiesSet).sort().forEach(ethnicity => {
+      if (ethnicity !== "Kinh") {
+        // Thêm cho filter
+        const option1 = document.createElement('option');
+        option1.value = ethnicity;
+        option1.textContent = ethnicity;
+        ethnicityFilter.appendChild(option1);
+        
+        // Thêm cho modal
+        const option2 = document.createElement('option');
+        option2.value = ethnicity;
+        option2.textContent = ethnicity;
+        ethnicitySelect.appendChild(option2);
+      }
+    });
+    
+    // Thêm vào dropdown thêm mới
+    const addEthnicity = document.getElementById('addEthnicity');
+    if (addEthnicity) {
+      while (addEthnicity.options.length > 1) {
+        addEthnicity.remove(1);
+      }
+      
+      // Thêm mặc định dân tộc Kinh
+      const kinhOption = document.createElement('option');
+      kinhOption.value = "Kinh";
+      kinhOption.textContent = "Kinh";
+      addEthnicity.appendChild(kinhOption);
+      
+      // Thêm các dân tộc khác
+      Array.from(ethnicitiesSet).sort().forEach(ethnicity => {
+        if (ethnicity !== "Kinh") {
+          const option = document.createElement('option');
+          option.value = ethnicity;
+          option.textContent = ethnicity;
+          addEthnicity.appendChild(option);
+        }
+      });
+    }
+  }
+  
+  // Xử lý dữ liệu huyện/xã
+  function handleDistrictWardResponse(response) {
+    if (response.isError()) {
+      console.error('Lỗi khi tải dữ liệu huyện/xã:', response.getMessage(), response.getDetailedMessage());
+      return;
+    }
+
+    const data = response.getDataTable();
+    const districtFilter = document.getElementById('districtFilter');
+    const districtSelect = document.getElementById('districtSelect');
+    const numRows = data.getNumberOfRows();
+    console.log(`Đã nhận ${numRows} dòng dữ liệu huyện/xã`);
+
+    districtWardMapping = {};
+    allWards = [];
+    
+    // Lấy các huyện và xã từ dữ liệu
+    for (let i = 0; i < numRows; i++) {
+      const district = data.getValue(i, 0);
+      const ward = data.getValue(i, 1);
+      
+      if (district && ward) {
+        if (!districtWardMapping[district]) {
+          districtWardMapping[district] = [];
+        }
+        
+        districtWardMapping[district].push(ward);
+        allWards.push(ward);
+      }
+    }
+
+    // Cập nhật cho filter dropdown
+    while (districtFilter.options.length > 1) {
+      districtFilter.remove(1);
+    }
+    
+    // Cập nhật cho modal dropdown
+    while (districtSelect.options.length > 0) {
+      districtSelect.remove(0);
+    }
+    
+    // Thêm option mặc định cho modal dropdown
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.textContent = "-- Chọn huyện/thành phố --";
+    districtSelect.appendChild(defaultOption);
+
+    // Sắp xếp các huyện theo alphabet
+    const districts = Object.keys(districtWardMapping).sort();
+    
+    districts.forEach(district => {
+      // Thêm cho filter
+      const option1 = document.createElement('option');
+      option1.value = district;
+      option1.textContent = district;
+      districtFilter.appendChild(option1);
+      
+      // Thêm cho modal
+      const option2 = document.createElement('option');
+      option2.value = district;
+      option2.textContent = district;
+      districtSelect.appendChild(option2);
+    });
+    
+    // Cập nhật các dropdown xã phường
+    updateWardDropdown();
+    updateModalWardDropdown();
+    
+    // Thêm vào dropdown thêm mới
+    const addDistrict = document.getElementById('addDistrict');
+    if (addDistrict) {
+      while (addDistrict.options.length > 1) {
+        addDistrict.remove(1);
+      }
+      
+      districts.forEach(district => {
+        const option = document.createElement('option');
+        option.value = district;
+        option.textContent = district;
+        addDistrict.appendChild(option);
+      });
+    }
+  }
+  
+  // Cập nhật dropdown xã phường trong bộ lọc
+  function updateWardDropdown() {
+    const districtFilter = document.getElementById('districtFilter');
+    const wardFilter = document.getElementById('wardFilter');
+    const selectedDistrict = districtFilter.value;
+    
+    console.log("Cập nhật danh sách xã cho huyện:", selectedDistrict); // Thêm log để debug
+    
+    // Xóa tất cả các option trừ option đầu tiên (Tất cả)
+    while (wardFilter.options.length > 1) {
+      wardFilter.remove(1);
+    }
+    
+    // Nếu không chọn huyện, hiển thị tất cả xã
+    if (selectedDistrict === "") {
+      // Hiển thị tất cả các xã đã sắp xếp
+      const sortedWards = [...new Set(allWards)].sort();
+      
+      sortedWards.forEach(ward => {
+        const option = document.createElement('option');
+        option.value = ward;
+        option.textContent = ward;
+        wardFilter.appendChild(option);
+      });
+      return;
+    }
+    
+    // Lấy danh sách xã theo huyện đã chọn
+    const wards = districtWardMapping[selectedDistrict] || [];
+    wards.sort().forEach(ward => {
+      const option = document.createElement('option');
+      option.value = ward;
+      option.textContent = ward;
+      wardFilter.appendChild(option);
+    });
+  }
+  
+  // Cập nhật dropdown xã phường trong modal chỉnh sửa
+  function updateModalWardDropdown() {
+    const districtSelect = document.getElementById('districtSelect');
+    const wardSelect = document.getElementById('wardSelect');
+    const selectedDistrict = districtSelect.value;
+    
+    // Xóa tất cả các option
+    while (wardSelect.options.length > 0) {
+      wardSelect.remove(0);
+    }
+    
+    // Thêm option mặc định
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.textContent = "-- Chọn xã/phường/thị trấn --";
+    wardSelect.appendChild(defaultOption);
+    
+    // Nếu không chọn huyện, không hiển thị xã
+    if (!selectedDistrict) {
+      return;
+    }
+    
+    // Lấy danh sách xã theo huyện đã chọn
+    const wards = districtWardMapping[selectedDistrict] || [];
+    wards.sort().forEach(ward => {
+      const option = document.createElement('option');
+      option.value = ward;
+      option.textContent = ward;
+      wardSelect.appendChild(option);
+    });
+  }
+  
+  // Cập nhật số thứ tự các hàng
+  function updateRowNumbers() {
+    const rows = document.getElementById("htxData").getElementsByTagName("tr");
+    let visibleIndex = 1;
+    
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].style.display !== "none") {
+        const firstCell = rows[i].cells[0];
+        if (firstCell) {
+          firstCell.textContent = visibleIndex;
+          visibleIndex++;
+        }
+      }
+    }
+  }
+  
+  // Cập nhật lại các hàng có background khác nhau
+  function updateStripedRows() {
+    const tbody = document.getElementById("htxData");
+    const visibleRows = Array.from(tbody.getElementsByTagName("tr")).filter(row => row.style.display !== "none");
+    
+    visibleRows.forEach((row, index) => {
+      // Xóa tất cả các class bg-light
+      row.classList.remove("bg-light");
+      
+      // Áp dụng bg-light cho các hàng chẵn (0-based)
+      if (index % 2 === 1) {
+        row.classList.add("bg-light");
+      }
+    });
+  }
+  
+  // Cập nhật thống kê dữ liệu đang hiển thị
+  function updateDataStats() {
+    const visibleRows = document.querySelectorAll('#htxData tr:not([style*="display: none"])').length;
+    document.getElementById('dataStats').innerHTML = 
+      `Hiển thị <strong>${visibleRows}</strong> trên tổng số <strong>${htxData.length}</strong> hợp tác xã`;
+  }
+  
+  // Lọc dữ liệu theo các bộ lọc
+  function filterData() {
+    var year = document.getElementById("yearFilter").value;
+    var gender = document.getElementById("genderFilter").value;
+    var ethnicity = document.getElementById("ethnicityFilter").value;
+    var industry = document.getElementById("industryFilter").value;
+    var district = document.getElementById("districtFilter").value;
+    var ward = document.getElementById("wardFilter").value;
+    var type = document.getElementById("typeFilter").value;     // Thêm bộ lọc loại hình
+    var status = document.getElementById("statusFilter").value;
+    var searchValue = document.getElementById("searchBox").value.toLowerCase();
+    
+    // Debug thông tin lọc theo loại hình
+    if (type) {
+      console.log("Đang lọc theo loại hình:", type);
+      console.log("Các loại hình trong dữ liệu:", [...new Set(htxData.map(item => item.type))]);
+    }
+    
+    var rows = document.getElementById("htxData").getElementsByTagName("tr");
+    filteredData = [];
+
+    for (var i = 0; i < rows.length; i++) {
+      if (!rows[i].dataset.rowIndex) continue;
+      
+      const rowIndex = parseInt(rows[i].dataset.rowIndex);
+      const rowData = htxData[rowIndex];
+      if (!rowData) continue;
+      
+      var showRow = true;
+
+      // Kiểm tra tìm kiếm
+      if (searchValue) {
+        let matchFound = false;
+        
+        // Kiểm tra trong các trường thông tin chính
+        const searchFields = ['name', 'representative', 'code', 'district', 'ward', 'industry', 'type', 'status'];
+        for (const field of searchFields) {
+          if (rowData[field] && rowData[field].toString().toLowerCase().includes(searchValue)) {
+            matchFound = true;
+            break;
+          }
+        }
+        
+        if (!matchFound) showRow = false;
+      }
+
+      // Kiểm tra các bộ lọc
+      if (year && rowData.establishYearOnly !== year) showRow = false;
+      if (gender && rowData.gender !== gender) showRow = false;
+      if (ethnicity && rowData.ethnicity !== ethnicity) showRow = false;
+      if (industry && rowData.industry !== industry) showRow = false;
+      if (district && rowData.district !== district) showRow = false; 
+      if (ward && rowData.ward !== ward) showRow = false;
+      
+      // Sửa lại phần lọc loại hình để loại bỏ khoảng trắng trước và sau
+      if (type && rowData.type !== type) {
+        if (rowData.type && rowData.type.trim() === type.trim()) {
+          // Nếu giống nhau sau khi trim() thì vẫn hiển thị
+          console.log(`Phát hiện khớp sau khi trim cho "${rowData.type}" và "${type}"`);
+        } else {
+          showRow = false;
+        }
+      }
+      
+      if (status && rowData.status !== status) showRow = false;
+
+      rows[i].style.display = showRow ? "" : "none";
+      
+      if (showRow) {
+        filteredData.push(rowData);
+      }
+    }
+    
+    updateRowNumbers();
+    updateStripedRows();
+    updateDataStats();
+  }
+
+  // Đặt lại tất cả bộ lọc
+  function resetFilters() {
+    document.getElementById("yearFilter").value = "";
+    document.getElementById("genderFilter").value = "";
+    document.getElementById("ethnicityFilter").value = "";
+    document.getElementById("industryFilter").value = "";
+    document.getElementById("districtFilter").value = "";
+    document.getElementById("wardFilter").value = "";
+    document.getElementById("typeFilter").value = "";        // Đặt lại bộ lọc loại hình
+    document.getElementById("statusFilter").value = "";
+    document.getElementById("searchBox").value = "";
+    
+    filterData();
+    
+    // Thông báo cho người dùng
+    showToast("Thông báo", "Đã đặt lại tất cả bộ lọc");
+  }
+
+  // Hiển thị trường nhập liệu phù hợp cho modal chỉnh sửa
+  function showAppropriateInputField(selectedColumn) {
+    // Ẩn tất cả các trường nhập liệu
+    document.getElementById('textInputGroup').style.display = 'none';
+    document.getElementById('genderDropdownGroup').style.display = 'none';
+    document.getElementById('ethnicityDropdownGroup').style.display = 'none';
+    document.getElementById('industryDropdownGroup').style.display = 'none';
+    document.getElementById('addressDropdownGroup').style.display = 'none';
+    document.getElementById('statusDropdownGroup').style.display = 'none';
+    document.getElementById('typeDropdownGroup').style.display = 'none';  // Thêm dropdown cho loại hình
+    document.getElementById('datePickerGroup').style.display = 'none';
+    document.getElementById('numberInputGroup').style.display = 'none';
+    
+    // Hiển thị trường nhập liệu phù hợp dựa trên cột được chọn
+    switch (parseInt(selectedColumn)) {
+      case 2: // Thời gian thành lập
+      case 6: // Ngày sinh
+        document.getElementById('datePickerGroup').style.display = 'block';
+        break;
+      case 5: // Giới tính
+        document.getElementById('genderDropdownGroup').style.display = 'block';
+        break;
+      case 7: // Dân tộc
+        document.getElementById('ethnicityDropdownGroup').style.display = 'block';
+        break;
+      case 8: // Phân loại nhóm ngành nghề
+        document.getElementById('industryDropdownGroup').style.display = 'block';
+        break;
+      case 9: // Huyện/Thành phố/Thị xã
+      case 10: // Xã/Phường/Thị trấn
+        document.getElementById('addressDropdownGroup').style.display = 'block';
+        document.getElementById('editingAddressColumn').value = selectedColumn;
+        break;
+      case 11: // Tổng vốn điều lệ
+      case 13: // Tổng số thành viên
+      case 14: // Tổng số lao động
+      case 15: // Lao động là thành viên
+      case 16: // Lao động thuê ngoài
+        document.getElementById('numberInputGroup').style.display = 'block';
+        break;
+      case 17: // Loại hình (mới)
+        document.getElementById('typeDropdownGroup').style.display = 'block';
+        break;
+      case 18: // Trạng thái hoạt động (đã dịch từ 17 thành 18)
+        document.getElementById('statusDropdownGroup').style.display = 'block';
+        break;
+      default: // Các trường còn lại sử dụng input text
+        document.getElementById('textInputGroup').style.display = 'block';
+        break;
+    }
+  }
+
+  // Cập nhật giá trị trường nhập liệu dựa trên cột được chọn
+  function updateInputValueBasedOnColumn() {
+    const columnSelect = document.getElementById("columnSelect");
+    const newValue = document.getElementById("newValue");
+    const newNumberValue = document.getElementById("newNumberValue");
+    const selectedColumn = parseInt(columnSelect.value);
+    
+    // Hiển thị trường nhập liệu phù hợp
+    showAppropriateInputField(selectedColumn);
+    
+    // Cập nhật giá trị cho trường nhập liệu phù hợp
+    switch (selectedColumn) {
+      case 2: // Thời gian thành lập
+        flatpickrInstance.setDate(htxData[rowToEditOrDelete].establishYear || '', false);
+        break;
+      case 6: // Ngày sinh
+        flatpickrInstance.setDate(htxData[rowToEditOrDelete].birthdate || '', false);
+        break;
+      case 3: // Mã số hợp tác xã
+        newValue.value = htxData[rowToEditOrDelete].code;
+        break;
+      case 5: // Giới tính
+        document.getElementById('genderSelect').value = htxData[rowToEditOrDelete].gender;
+        break;
+      case 7: // Dân tộc
+        document.getElementById('ethnicitySelect').value = htxData[rowToEditOrDelete].ethnicity;
+        break;
+      case 8: // Phân loại nhóm ngành nghề
+        document.getElementById('industrySelect').value = htxData[rowToEditOrDelete].industry;
+        break;
+      case 9: // Huyện/Thành phố/Thị xã
+      case 10: // Xã/Phường/Thị trấn
+        // Luôn hiển thị cả huyện và xã, bất kể đang sửa cột nào
+        document.getElementById('districtSelect').value = htxData[rowToEditOrDelete].district;
+        // Cập nhật danh sách xã dựa trên huyện đã chọn
+        updateModalWardDropdown();
+        // Sau đó chọn xã hiện tại
+        setTimeout(() => {
+          document.getElementById('wardSelect').value = htxData[rowToEditOrDelete].ward;
+        }, 100);
+        break;
+      case 11: // Tổng vốn điều lệ
+        newNumberValue.value = htxData[rowToEditOrDelete].capital;
+        break;
+      case 12: // Số điện thoại liên hệ
+        newValue.value = htxData[rowToEditOrDelete].phone;
+        break;
+      case 13: // Tổng số thành viên
+        newNumberValue.value = htxData[rowToEditOrDelete].members;
+        break;
+      case 14: // Tổng số lao động
+        newNumberValue.value = htxData[rowToEditOrDelete].totalLabor;
+        break;
+      case 15: // Lao động là thành viên
+        newNumberValue.value = htxData[rowToEditOrDelete].memberLabor;
+        break;
+      case 16: // Lao động thuê ngoài
+        newNumberValue.value = htxData[rowToEditOrDelete].hiredLabor;
+        break;
+      case 17: // Loại hình (mới)
+        document.getElementById('typeSelect').value = htxData[rowToEditOrDelete].type;
+        break;
+      case 18: // Trạng thái hoạt động (đã dịch chuyển từ 17 sang 18)
+        document.getElementById('statusSelect').value = htxData[rowToEditOrDelete].status;
+        break;
+      default:
+        // Lấy giá trị từ bảng hiển thị cho các cột không cần xử lý đặc biệt
+        newValue.value = htxData[rowToEditOrDelete].name;
+        if (selectedColumn === 1) {
+          newValue.value = htxData[rowToEditOrDelete].name;
+        } else if (selectedColumn === 4) {
+          newValue.value = htxData[rowToEditOrDelete].representative;
+        }
+        break;
+    }
+  }
+
+  // Mở modal chỉnh sửa
+  function openEditModal(rowIndex) {
+    rowToEditOrDelete = rowIndex;
+    highlightRow(rowIndex);
+    
+    // Đặt giá trị mặc định cho select column và hiển thị cột tên HTX
+    document.getElementById("columnSelect").value = "1";
+    
+    // Cập nhật giá trị cho input dựa trên column đã chọn
+    updateInputValueBasedOnColumn();
+    
+    // Hiển thị modal
+    $('#editModal').modal('show');
+  }
+
+  // Mở modal thêm HTX mới
+  function openAddModal() {
+    // Reset form
+    document.getElementById('addForm').reset();
+    
+    // Hiển thị modal
+    $('#addHTXModal').modal('show');
+  }
+  
+  // Xác nhận xóa HTX
+  function confirmDeleteRow(rowIndex) {
+    highlightRow(rowIndex);
+    
+    // Lấy tên HTX để hiển thị
+    const htxName = htxData[rowIndex].name;
+    
+    // Hiển thị modal xác nhận
+    document.getElementById('confirmDeleteHTXName').textContent = htxName;
+    document.getElementById('confirmDeleteRowIndex').value = rowIndex;
+    $('#confirmDeleteModal').modal('show');
+  }
+
+  // Thực hiện xóa HTX
+  function deleteRow() {
+    const rowIndex = parseInt(document.getElementById('confirmDeleteRowIndex').value);
+    
+    // Ẩn modal xác nhận xóa
+    $('#confirmDeleteModal').modal('hide');
+    
+    // Hiển thị thông báo đang xóa
+    showToast("Đang xử lý", "Đang xóa dữ liệu...", "info");
+    
+    // Gọi API để xóa dữ liệu
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.success) {
+          // Xóa khỏi bảng
+          const row = document.getElementById("row-" + rowIndex);
+          if (row && row.parentNode) {
+            row.parentNode.removeChild(row);
+          }
+          
+          // Xóa khỏi mảng dữ liệu
+          htxData.splice(rowIndex, 1);
+          
+          // Cập nhật lại ID và số thứ tự các hàng
+          const rows = document.getElementById("htxData").getElementsByTagName("tr");
+          for (let i = 0; i < rows.length; i++) {
+            if (rows[i].id.startsWith('row-')) {
+              const currentIndex = parseInt(rows[i].id.split('-')[1]);
+              if (currentIndex > rowIndex) {
+                rows[i].id = 'row-' + (currentIndex - 1);
+                rows[i].dataset.rowIndex = currentIndex - 1;
+                
+                // Cập nhật các sự kiện click của nút
+                const buttons = rows[i].querySelectorAll('button');
+                if (buttons.length >= 2) {
+                  buttons[0].setAttribute('onclick', `openEditModal(${currentIndex - 1})`);
+                  buttons[1].setAttribute('onclick', `confirmDeleteRow(${currentIndex - 1})`);
+                }
+              }
+            }
+          }
+          
+          // Cập nhật hiển thị
+          updateRowNumbers();
+          updateStripedRows();
+          updateDataStats();
+          
+          // Cập nhật lại bộ lọc năm thành lập
+          const yearsSet = new Set(htxData.filter(item => item.establishYearOnly).map(item => item.establishYearOnly));
+          updateYearFilter(yearsSet);
+          
+          // Cập nhật lại số liệu thống kê
+          updateDashboardStats();
+          
+          showToast("Thành công", "Đã xóa dữ liệu HTX");
+          
+          // Xóa highlight
+          removeHighlight();
+        } else {
+          showToast("Lỗi", result.message || "Không thể xóa dữ liệu", "error");
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error('Lỗi khi xóa:', error);
+        showToast("Lỗi", "Không thể xóa dữ liệu: " + error, "error");
+      })
+      .handleRequest({
+        action: 'deleteRow',
+        rowIndex: rowIndex
+      });
+  }
+
+  // Đóng modal chỉnh sửa
+  function closeModal() {
+    removeHighlight();
+    $('#editModal').modal('hide');
+  }
+
+  // Đánh dấu hàng đang thao tác
+  function highlightRow(rowIndex) {
+    var rows = document.getElementById("htxData").getElementsByTagName("tr");
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].classList.remove("highlight");
+    }
+    
+    const rowElement = document.getElementById("row-" + rowIndex);
+    if (rowElement) {
+      rowElement.classList.add("highlight");
+      
+      // Cuộn đến hàng được chọn
+      rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  // Bỏ đánh dấu hàng
+  function removeHighlight() {
+    var rows = document.getElementById("htxData").getElementsByTagName("tr");
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].classList.remove("highlight");
+    }
+  }
+  
+  // Hiển thị thông báo toast
+  function showToast(title, message, type = 'success') {
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.className = 'toast-container';
+      toastContainer.style.position = 'fixed';
+      toastContainer.style.top = '20px';
+      toastContainer.style.right = '20px';
+      toastContainer.style.zIndex = '9999';
+      document.body.appendChild(toastContainer);
+    }
+    
+    // Tạo ID duy nhất cho toast
+    const toastId = 'toast-' + Date.now();
+    
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.style.backgroundColor = 'white';
+    toast.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+    toast.style.borderRadius = '4px';
+    toast.style.padding = '10px 15px';
+    toast.style.marginBottom = '10px';
+    toast.style.minWidth = '250px';
+    toast.style.opacity = '0';
+    toast.style.transition = 'all 0.3s ease';
+    
+    // Chọn màu viền dựa trên loại thông báo
+    let borderColor = '#28a745'; // success - xanh lá
+    let icon = 'fas fa-check-circle';
+    
+    if (type === 'error') {
+      borderColor = '#dc3545'; // error - đỏ
+      icon = 'fas fa-exclamation-circle';
+    } else if (type === 'info') {
+      borderColor = '#17a2b8'; // info - xanh dương
+      icon = 'fas fa-info-circle';
+    } else if (type === 'warning') {
+      borderColor = '#ffc107'; // warning - vàng
+      icon = 'fas fa-exclamation-triangle';
+    }
+    
+    toast.style.borderLeft = `4px solid ${borderColor}`;
+    
+    toast.innerHTML = `
+      <div style="display: flex; align-items: center;">
+        <i class="${icon}" style="color: ${borderColor}; font-size: 18px; margin-right: 10px;"></i>
+        <div>
+          <div style="font-weight: bold; margin-bottom: 3px;">${title}</div>
+          <div style="font-size: 14px;">${message}</div>
+        </div>
+        <button type="button" style="background: none; border: none; font-size: 16px; margin-left: auto; cursor: pointer; padding: 0 5px;" onclick="this.parentNode.parentNode.remove()">×</button>
+      </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Hiển thị toast với hiệu ứng
+    setTimeout(() => {
+      toast.style.opacity = '1';
+    }, 10);
+    
+    // Tự động ẩn sau 3 giây
+    setTimeout(() => {
+      if (document.getElementById(toastId)) {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+          if (toastContainer.contains(toast)) {
+            toastContainer.removeChild(toast);
+          }
+        }, 300);
+      }
+    }, 3000);
+  }
+  
+  // Lưu thay đổi trong modal chỉnh sửa
+  function saveChanges() {
+    const columnSelect = document.getElementById("columnSelect");
+    const selectedColumn = parseInt(columnSelect.value);
+    const actualColumnIndex = selectedColumn;
+    
+    // Kiểm tra nếu chưa có thông tin người dùng thì lấy lại
+    if (!currentUserInfo) {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result && result.success && result.data) {
+            currentUserInfo = result.data;
+            processEditChanges(selectedColumn, actualColumnIndex);
+          } else {
+            showToast("Lỗi", "Không thể lấy thông tin người dùng", "error");
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error("Lỗi khi lấy thông tin người dùng:", error);
+          showToast("Lỗi", "Không thể lấy thông tin người dùng: " + error, "error");
+        })
+        .handleRequest({action: 'getUserInfo'});
+    } else {
+      processEditChanges(selectedColumn, actualColumnIndex);
+    }
+  }
+
+  // Xử lý thay đổi chỉnh sửa
+  function processEditChanges(selectedColumn, actualColumnIndex) {
+    // Lấy giá trị mới dựa trên loại trường nhập liệu
+    let newValue;
+    
+    switch (selectedColumn) {
+      case 2: // Thời gian thành lập
+      case 6: // Ngày sinh
+        newValue = document.getElementById('datePickerInput').value;
+        break;
+      case 5: // Giới tính
+        newValue = document.getElementById('genderSelect').value;
+        break;
+      case 7: // Dân tộc
+        newValue = document.getElementById('ethnicitySelect').value;
+        break;
+      case 8: // Phân loại nhóm ngành nghề
+        newValue = document.getElementById('industrySelect').value;
+        break;
+      case 9: // Huyện/Thành phố/Thị xã
+        newValue = document.getElementById('districtSelect').value;
+        break;
+      case 10: // Xã/Phường/Thị trấn
+        newValue = document.getElementById('wardSelect').value;
+        break;
+      case 11: // Tổng vốn điều lệ
+      case 13: // Tổng số thành viên
+      case 14: // Tổng số lao động
+      case 15: // Lao động là thành viên
+      case 16: // Lao động thuê ngoài
+        newValue = document.getElementById('newNumberValue').value;
+        // Chuyển đổi định dạng số về dạng không có dấu phân cách
+        if (newValue) {
+          newValue = newValue.replace(/\./g, '').replace(/,/g, '');
+        }
+        break;
+      case 17: // Loại hình (mới)
+        newValue = document.getElementById('typeSelect').value;
+        break;
+      case 18: // Trạng thái hoạt động (đã dịch chuyển từ 17 sang 18)
+        newValue = document.getElementById('statusSelect').value;
+        break;
+      default:
+        newValue = document.getElementById('newValue').value;
+        break;
+    }
+    
+    // Kiểm tra giá trị mới
+    if (newValue === undefined || newValue === null) {
+      showToast("Lỗi", "Giá trị không hợp lệ", "error");
+      return;
+    }
+    
+    console.log("Chuẩn bị gửi dữ liệu:", {
+      rowIndex: rowToEditOrDelete,
+      columnIndex: actualColumnIndex - 1, 
+      newValue: newValue
+    });
+    
+    // Đóng modal
+    $('#editModal').modal('hide');
+    
+    // Hiển thị thông báo đang xử lý
+    showToast("Đang xử lý", "Đang cập nhật dữ liệu...", "info");
+    
+    // Lấy thông tin thời gian và người dùng hiện tại
+    const now = new Date();
+    const timestamp = currentUserInfo ? currentUserInfo.formattedTime : formatDateManually(now);
+    const userEmail = currentUserInfo ? currentUserInfo.email : "unknown@user.com";
+    
+    // Thực hiện cập nhật dữ liệu 
+    google.script.run
+      .withSuccessHandler(function(result) {
+        console.log("Kết quả từ server:", result);
+        if (result && result.success) {
+          // Cập nhật UI
+          updateUIAfterEdit(rowToEditOrDelete, selectedColumn, newValue);
+          
+          // Hiển thị thông báo thành công
+          showToast("Thành công", "Đã cập nhật dữ liệu", "success");
+        } else {
+          showToast("Lỗi", result && result.message ? result.message : "Không thể cập nhật dữ liệu", "error");
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error('Lỗi khi cập nhật:', error);
+        showToast("Lỗi", "Không thể cập nhật dữ liệu: " + error, "error");
+      })
+      .handleRequest({
+        action: 'updateCell',
+        data: JSON.stringify({
+          rowIndex: rowToEditOrDelete,
+          columnIndex: actualColumnIndex - 1, // -1 vì trong code.gs, columnIndex là 0-based
+          newValue: newValue,
+          timestamp: timestamp,
+          user: userEmail
+        })
+      });
+  }
+  
+  // Cập nhật giao diện sau khi chỉnh sửa
+  function updateUIAfterEdit(rowIndex, selectedColumn, newValue) {
+    const row = document.getElementById("row-" + rowIndex);
+    if (!row) return;
+    
+    // Đánh dấu hàng vừa được chỉnh sửa
+    row.classList.add("highlight-animation");
+    setTimeout(() => {
+      row.classList.remove("highlight-animation");
+    }, 2000);
+    
+    // Cập nhật dữ liệu trong mảng và giao diện
+    const htx = htxData[rowIndex];
+    if (!htx) return;
+    
+    switch (parseInt(selectedColumn)) {
+      case 1: // Tên HTX
+        htx.name = newValue;
+        row.cells[1].textContent = newValue;
+        break;
+      case 2: // Thời gian thành lập
+        htx.establishDate = newValue;
+        htx.establishYear = newValue;
+        htx.establishYearOnly = extractYear(newValue);
+        row.cells[2].textContent = newValue;
+        break;
+      case 3: // Mã số HTX
+        htx.code = newValue;
+        htx.codeFormatted = formatCodeNumber(newValue);
+        row.cells[3].innerHTML = htx.codeFormatted;
+        break;
+      case 4: // Người đại diện
+        htx.representative = newValue;
+        row.cells[4].textContent = newValue;
+        break;
+      case 5: // Giới tính
+        htx.gender = newValue;
+        row.cells[5].textContent = newValue;
+        break;
+      case 6: // Ngày sinh
+        htx.birthdate = newValue;
+        row.cells[6].textContent = newValue;
+        break;
+      case 7: // Dân tộc
+        htx.ethnicity = newValue;
+        row.cells[7].textContent = newValue;
+        break;
+      case 8: // Phân loại nhóm ngành nghề
+        htx.industry = newValue;
+        row.cells[8].textContent = newValue;
+        break;
+      case 9: // Huyện/Thành phố/Thị xã
+        htx.district = newValue;
+        row.cells[9].textContent = newValue;
+        break;
+      case 10: // Xã/Phường/Thị trấn
+        htx.ward = newValue;
+        row.cells[10].textContent = newValue;
+        break;
+      case 11: // Tổng vốn điều lệ
+        htx.capital = newValue;
+        htx.capitalFormatted = formatNumber(newValue);
+        row.cells[11].innerHTML = htx.capitalFormatted;
+        break;
+      case 12: // Số điện thoại liên hệ
+        htx.phone = newValue;
+        htx.phoneFormatted = formatCodeNumber(newValue);
+        row.cells[12].innerHTML = htx.phoneFormatted;
+        break;
+      case 13: // Tổng số thành viên
+        htx.members = newValue;
+        htx.membersFormatted = formatNumber(newValue);
+        row.cells[13].innerHTML = htx.membersFormatted;
+        break;
+      case 14: // Tổng số lao động
+        htx.totalLabor = newValue;
+        htx.totalLaborFormatted = formatNumber(newValue);
+        row.cells[14].innerHTML = htx.totalLaborFormatted;
+        break;
+      case 15: // Lao động là thành viên
+        htx.memberLabor = newValue;
+        htx.memberLaborFormatted = formatNumber(newValue);
+        row.cells[15].innerHTML = htx.memberLaborFormatted;
+        break;
+      case 16: // Lao động thuê ngoài
+        htx.hiredLabor = newValue;
+        htx.hiredLaborFormatted = formatNumber(newValue);
+        row.cells[16].innerHTML = htx.hiredLaborFormatted;
+        break;
+      case 17: // Loại hình (mới)
+        htx.type = newValue ? newValue.trim() : '';  // Đảm bảo cắt khoảng trắng
+        row.cells[17].innerHTML = htx.type;
+        break;
+      case 18: // Trạng thái hoạt động (đã dịch chuyển từ 17 sang 18)
+        htx.status = newValue;
+        htx.statusFormatted = formatStatus(newValue);
+        row.cells[18].innerHTML = htx.statusFormatted;
+        break;
+    }
+    
+    // Áp dụng lại các bộ lọc
+    filterData();
+  }
+  
+  // Xuất dữ liệu
+  function exportData() {
+    try {
+      // Lấy dữ liệu đã được lọc hiện đang hiển thị
+      const dataToExport = filteredData;
+      
+      // Kiểm tra nếu không có dữ liệu để xuất
+      if (!dataToExport || dataToExport.length === 0) {
+        showToast("Thông báo", "Không có dữ liệu để xuất", "warning");
+        return;
+      }
+      
+      // Hiển thị thông báo đang xuất
+      showToast("Đang xử lý", "Đang chuẩn bị xuất dữ liệu...", "info");
+      
+      // Tạo tiêu đề cột cho file Excel
+      const headers = [
+        "STT", "Tên HTX", "Ngày thành lập", "Mã số HTX", 
+        "Người đại diện", "Giới tính", "Ngày sinh", "Dân tộc", 
+        "Ngành nghề", "Huyện/TP", "Xã/Phường", "Vốn điều lệ", 
+        "Điện thoại", "Số thành viên", "Tổng lao động", 
+        "Lao động thành viên", "Lao động thuê ngoài", "Loại hình", "Trạng thái"
+      ];
+      
+      // Chuẩn bị dữ liệu cho Excel
+      const excelData = [];
+      excelData.push(headers); // Thêm hàng tiêu đề
+      
+      // Thêm các hàng dữ liệu
+      dataToExport.forEach((item, index) => {
+        // Loại bỏ các tags HTML trong chuỗi trạng thái
+        const plainStatus = item.status ? item.status.replace(/<[^>]*>/g, '') : '';
+        
+        excelData.push([
+          index + 1, // STT
+          item.name,
+          item.establishYear,
+          item.code,
+          item.representative,
+          item.gender,
+          item.birthdate,
+          item.ethnicity,
+          item.industry,
+          item.district,
+          item.ward,
+          // Sử dụng giá trị gốc không định dạng để Excel có thể xử lý là số
+          item.capital,
+          item.phone,
+          item.members,
+          item.totalLabor,
+          item.memberLabor,
+          item.hiredLabor,
+          item.type,
+          plainStatus
+        ]);
+      });
+      
+      // Tạo workbook mới
+      const wb = XLSX.utils.book_new();
+      // Tạo worksheet từ dữ liệu
+      const ws = XLSX.utils.aoa_to_sheet(excelData);
+      
+      // Định dạng cột
+      const colWidth = [
+        { wch: 5 },  // STT
+        { wch: 40 }, // Tên HTX
+        { wch: 15 }, // Ngày thành lập
+        { wch: 15 }, // Mã số HTX
+        { wch: 25 }, // Người đại diện
+        { wch: 10 }, // Giới tính
+        { wch: 15 }, // Ngày sinh
+        { wch: 15 }, // Dân tộc
+        { wch: 25 }, // Ngành nghề
+        { wch: 20 }, // Huyện/TP
+        { wch: 25 }, // Xã/Phường
+        { wch: 15 }, // Vốn điều lệ
+        { wch: 15 }, // Điện thoại
+        { wch: 15 }, // Số thành viên
+        { wch: 15 }, // Tổng lao động
+        { wch: 18 }, // Lao động thành viên
+        { wch: 18 }, // Lao động thuê ngoài
+        { wch: 20 }, // Loại hình
+        { wch: 20 }  // Trạng thái
+      ];
+      ws['!cols'] = colWidth;
+      
+      // Thêm worksheet vào workbook
+      XLSX.utils.book_append_sheet(wb, ws, "HTX");
+      
+      // Tạo tên file với thời gian hiện tại để tránh trùng lặp
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}`;
+      const fileName = `htx_data_${dateStr}.xlsx`;
+      
+      // Xuất file Excel
+      XLSX.writeFile(wb, fileName);
+      
+      // Thông báo thành công
+      showToast("Thành công", `Đã xuất ${dataToExport.length} dòng dữ liệu ra file Excel`, "success");
+    } catch (error) {
+      console.error('Lỗi khi xuất dữ liệu:', error);
+      showToast("Lỗi", "Không thể xuất dữ liệu: " + error.message, "error");
+    }
+  }
+  
+  // Xử lý lỗi
+  function handleError(error) {
+    console.error('Lỗi:', error);
+    showToast("Lỗi", "Đã xảy ra lỗi: " + error, "error");
+  }
+
+  // Thêm mới HTX
+  function addNewHTX() {
+    // Lấy dữ liệu từ form
+    const htxData = {
+      name: document.getElementById('addHTXName').value,
+      establishDate: document.getElementById('addEstablishDate').value,
+      code: document.getElementById('addCode').value,
+      representative: document.getElementById('addRepresentative').value,
+      gender: document.getElementById('addGender').value,
+      birthdate: document.getElementById('addBirthdate').value,
+      ethnicity: document.getElementById('addEthnicity').value,
+      industry: document.getElementById('addIndustry').value,
+      district: document.getElementById('addDistrict').value,
+      ward: document.getElementById('addWard').value,
+      capital: document.getElementById('addCapital').value,
+      phone: document.getElementById('addPhone').value,
+      members: document.getElementById('addMembers').value,
+      totalLabor: document.getElementById('addTotalLabor').value,
+      memberLabor: document.getElementById('addMemberLabor').value,
+      hiredLabor: document.getElementById('addHiredLabor').value,
+      type: document.getElementById('addType').value,       // Thêm trường loại hình
+      status: document.getElementById('addStatus').value
+    };
+    
+    // Validate dữ liệu
+    if (!htxData.name) {
+      showToast("Lỗi", "Vui lòng nhập tên HTX", "error");
+      return;
+    }
+    
+    if (!htxData.establishDate) {
+      showToast("Lỗi", "Vui lòng chọn ngày thành lập", "error");
+      return;
+    }
+    
+    // Hiển thị thông báo đang thêm
+    showToast("Đang xử lý", "Đang thêm HTX mới...", "info");
+    
+    // Gọi API để thêm mới
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.success) {
+          showToast("Thành công", "Đã thêm HTX mới");
+          
+          // Đóng modal
+          $('#addHTXModal').modal('hide');
+          
+          // Tải lại dữ liệu
+          loadData();
+        } else {
+          showToast("Lỗi", result.message || "Không thể thêm HTX mới", "error");
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error('Lỗi khi thêm HTX mới:', error);
+        showToast("Lỗi", "Không thể thêm HTX mới: " + error, "error");
+      })
+      .handleRequest({
+        action: 'addHTX',
+        htxData: JSON.stringify(htxData)
+      });
+  }
+
+  // Khởi tạo các sự kiện khi trang đã tải
+  document.addEventListener('DOMContentLoaded', function() {
+    // Khởi tạo flatpickr cho date picker trong modal chỉnh sửa
+    flatpickrInstance = flatpickr("#datePickerInput", {
+      dateFormat: "d/m/Y",
+      locale: "vn",
+      allowInput: true,
+      disableMobile: true
+    });
+    
+    // Khởi tạo flatpickr cho các trường ngày trong form thêm mới
+    flatpickr("#addEstablishDate", {
+      dateFormat: "d/m/Y",
+      locale: "vn",
+      allowInput: true,
+      disableMobile: true
+    });
+    
+    flatpickr("#addBirthdate", {
+      dateFormat: "d/m/Y",
+      locale: "vn",
+      allowInput: true,
+      disableMobile: true
+    });
+    
+    // Sự kiện khi thay đổi column trong modal chỉnh sửa
+    document.getElementById("columnSelect").addEventListener("change", updateInputValueBasedOnColumn);
+    
+    // Sự kiện khi thay đổi district trong modal chỉnh sửa
+    document.getElementById("districtSelect").addEventListener("change", updateModalWardDropdown);
+    
+    // Sự kiện khi thay đổi district trong dropdown filter
+    document.getElementById("districtFilter").addEventListener("change", function() {
+      // Lưu giá trị huyện đã chọn
+      const selectedDistrict = this.value;
+      
+      // Cập nhật dropdown xã trước
+      updateWardDropdown();
+      
+      // Đặt lại giá trị của dropdown xã về "Tất cả"
+      document.getElementById("wardFilter").value = "";
+      
+      // Sau đó lọc dữ liệu dựa trên huyện đã chọn
+      filterData();
+    });
+    
+    // Sự kiện cho các bộ lọc
+    const filterElements = [
+      "yearFilter", "genderFilter", "ethnicityFilter", 
+      "industryFilter", /* "districtFilter" đã xử lý riêng ở trên */ "wardFilter", 
+      "typeFilter", "statusFilter"   // Thêm typeFilter vào danh sách bộ lọc
+    ];
+    
+    filterElements.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.addEventListener("change", function() {
+          console.log(`Lọc theo ${id}:`, this.value);
+          // Debug cho lọc loại hình
+          if (id === 'typeFilter' && this.value) {
+            console.log("Đang lọc theo loại hình:", this.value);
+          }
+          filterData();
+        });
+      } else {
+        console.error(`Không tìm thấy phần tử có id: ${id}`);
+      }
+    });
+    
+    // Sự kiện cho ô tìm kiếm
+    document.getElementById("searchBox").addEventListener("input", function() {
+      // Sử dụng debounce để tránh filter quá nhiều lần khi gõ nhanh
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(filterData, 300);
+    });
+    
+    // Sự kiện nút đặt lại bộ lọc
+    document.getElementById("resetFiltersBtn").addEventListener("click", resetFilters);
+    
+    // Sự kiện nút thêm mới
+    document.getElementById("addNewBtn").addEventListener("click", openAddModal);
+    
+    // Sự kiện nút xuất dữ liệu
+    document.getElementById("exportBtn").addEventListener("click", exportData);
+    
+    // Sự kiện nút thống kê
+    document.getElementById("statsBtn").addEventListener("click", showStatsModal);
+    
+    // Sự kiện khi thay đổi district trong form thêm mới
+    document.getElementById("addDistrict").addEventListener("change", function() {
+      const districtSelect = document.getElementById('addDistrict');
+      const wardSelect = document.getElementById('addWard');
+      const selectedDistrict = districtSelect.value;
+      
+      while (wardSelect.options.length > 1) {
+        wardSelect.remove(1);
+      }
+      
+      if (selectedDistrict === "") {
+        return;
+      }
+      
+      const wards = districtWardMapping[selectedDistrict] || [];
+      wards.sort().forEach(ward => {
+        const option = document.createElement('option');
+        option.value = ward;
+        option.textContent = ward;
+        wardSelect.appendChild(option);
+      });
+    });
+    
+    // Định dạng số cho các trường số trong form thêm mới
+    const numberInputFields = [
+      "addCapital", "addMembers", "addTotalLabor", 
+      "addMemberLabor", "addHiredLabor", "newNumberValue"
+    ];
+    
+    numberInputFields.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.addEventListener("input", function(e) {
+          // Loại bỏ tất cả ký tự không phải số
+          let value = this.value.replace(/[^\d]/g, '');
+          
+          // Định dạng số với dấu chấm phân cách hàng nghìn
+          if (value) {
+            value = new Intl.NumberFormat('vi-VN').format(parseInt(value));
+            this.value = value;
+          }
+        });
+      }
+    });
+    
+    // Hiển thị thời gian hiện tại
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 60000); // Cập nhật mỗi phút
+    
+    // Xử lý nút cuộn bảng trái/phải
+    const scrollLeftBtn = document.getElementById('scrollLeftBtn');
+    const scrollRightBtn = document.getElementById('scrollRightBtn');
+    const tableContainer = document.querySelector('.table-responsive');
+
+    if (scrollLeftBtn && scrollRightBtn && tableContainer) {
+      // Ẩn nút trái ban đầu nếu bảng ở vị trí đầu
+      scrollLeftBtn.style.display = 'none';
+      
+      // Hiển thị/ẩn nút dựa vào vị trí cuộn
+      tableContainer.addEventListener('scroll', function() {
+        // Hiển thị nút trái nếu đã cuộn
+        if (tableContainer.scrollLeft > 0) {
+          scrollLeftBtn.style.display = 'block';
+        } else {
+          scrollLeftBtn.style.display = 'none';
+        }
+        
+        // Ẩn nút phải nếu đã cuộn hết
+        if (tableContainer.scrollLeft + tableContainer.clientWidth >= tableContainer.scrollWidth - 5) {
+          scrollRightBtn.style.display = 'none';
+        } else {
+          scrollRightBtn.style.display = 'block';
+        }
+      });
+      
+      // Xử lý sự kiện click
+      scrollLeftBtn.addEventListener('click', function() {
+        tableContainer.scrollBy({ left: -300, behavior: 'smooth' });
+      });
+      
+      scrollRightBtn.addEventListener('click', function() {
+        tableContainer.scrollBy({ left: 300, behavior: 'smooth' });
+      });
+    }
+
+    // Xử lý việc đảm bảo các cột cố định có màu nền đúng
+    function updateFixedColumnsBackground() {
+      document.querySelectorAll('tbody tr').forEach(row => {
+        const isHighlighted = row.classList.contains('highlight');
+        const isHovered = row.matches(':hover');
+        
+        const fixedColumns = row.querySelectorAll('.table-fixed-columns, .table-fixed-columns-right');
+        fixedColumns.forEach(cell => {
+          if (isHighlighted) {
+            cell.style.backgroundColor = 'rgba(255, 193, 7, 0.2)';
+          } else if (isHovered) {
+            cell.style.backgroundColor = 'rgba(25, 118, 210, 0.05)';
+          } else {
+            cell.style.backgroundColor = '';
+          }
+        });
+      });
+    }
+
+    // Cập nhật màu nền của cột cố định khi có thay đổi
+    document.addEventListener('mouseover', updateFixedColumnsBackground);
+    document.addEventListener('mouseout', updateFixedColumnsBackground);
+  });
+</script>

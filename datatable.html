@@ -1,0 +1,76 @@
+<!-- Card bảng dữ liệu -->
+<div class="card">
+  <div class="card-header bg-light d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Danh sách hợp tác xã</h5>
+    <div>
+      <button class="btn btn-sm btn-info mr-2" id="statsBtn">
+        <i class="fas fa-chart-pie mr-1"></i>Thống kê
+      </button>
+      <button class="btn btn-sm btn-success mr-2" id="addNewBtn">
+        <i class="fas fa-plus mr-1"></i>Thêm mới
+      </button>
+      <!-- Nút In biểu mới -->
+      <button class="btn btn-sm btn-secondary mr-2" id="printButton">
+        <i class="fas fa-print mr-1"></i>In biểu
+      </button>
+      <button class="btn btn-sm btn-primary" id="exportBtn">
+        <i class="fas fa-file-export mr-1"></i>Xuất dữ liệu
+      </button>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-scroller-container">
+      <button id="scrollLeftBtn" class="table-scroll-btn table-scroll-left">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      
+      <div class="table-responsive" style="overflow-x: scroll;">
+        <table class="table table-hover table-striped" style="width: auto; min-width: 100%;">
+          <thead>
+            <tr>
+              <th width="50" class="table-fixed-columns">#</th>
+              <th class="table-fixed-columns">Tên HTX</th>
+              <th>Thành lập</th>
+              <th>Mã số HTX</th>
+              <th>Người đại diện</th>
+              <th>Giới tính</th>
+              <th>Ngày sinh</th>
+              <th>Dân tộc</th>
+              <th>Ngành nghề</th>
+              <th>Huyện/TP</th>
+              <th>Xã/Phường</th>
+              <th>Vốn điều lệ</th>
+              <th>Điện thoại</th>
+              <th>Thành viên</th>
+              <th>Tổng LĐ</th>
+              <th>LĐ thành viên</th>
+              <th>LĐ thuê</th>
+              <th>Loại hình</th>
+              <th>Trạng thái</th>
+              <th width="100" class="table-fixed-columns-right">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="htxData">
+            <tr>
+              <td colspan="20" class="text-center p-5">
+                <div class="loading-spinner">
+                  <div class="spinner-border" role="status">
+                    <span class="sr-only">Đang tải...</span>
+                  </div>
+                  <p class="mt-3">Đang tải dữ liệu...</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <button id="scrollRightBtn" class="table-scroll-btn table-scroll-right">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+  <div class="card-footer text-muted">
+    <span id="dataStats">Hiển thị 0 trên tổng số 0 hợp tác xã</span>
+  </div>
+</div>

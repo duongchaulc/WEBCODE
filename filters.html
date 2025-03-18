@@ -1,0 +1,91 @@
+<!-- Card tìm kiếm và filter -->
+<div class="card mb-4">
+  <div class="card-header bg-light d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Tìm kiếm và lọc dữ liệu</h5>
+    <button class="btn btn-sm btn-outline-secondary" id="resetFiltersBtn">
+      <i class="fas fa-sync-alt mr-1"></i>Đặt lại bộ lọc
+    </button>
+  </div>
+  <div class="card-body">
+    <div class="search-container mb-3">
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+        </div>
+        <input type="text" id="searchBox" class="form-control" placeholder="Tìm kiếm hợp tác xã...">
+      </div>
+    </div>
+    <div class="filter-container">
+      <div class="row">
+        <div class="col-md-3 col-sm-6">
+          <div class="form-group">
+            <label for="yearFilter">Năm thành lập</label>
+            <select class="form-control" id="yearFilter">
+              <option value="">Tất cả các năm</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="form-group">
+            <label for="genderFilter">Giới tính người đại diện</label>
+            <select class="form-control" id="genderFilter">
+              <option value="">Tất cả</option>
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="form-group">
+            <label for="ethnicityFilter">Dân tộc</label>
+            <select class="form-control" id="ethnicityFilter">
+              <option value="">Tất cả dân tộc</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="form-group">
+            <label for="industryFilter">Ngành nghề</label>
+            <select class="form-control" id="industryFilter">
+              <option value="">Tất cả ngành nghề</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 col-sm-6">
+          <div class="form-group">
+            <label for="districtFilter">Huyện/Thành phố/Thị xã</label>
+            <select class="form-control" id="districtFilter">
+              <option value="">Tất cả huyện/Thành phố</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="form-group">
+            <label for="wardFilter">Xã/Phường/Thị trấn</label>
+            <select class="form-control" id="wardFilter">
+              <option value="">Tất cả xã/phường/Thị trấn</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="form-group">
+            <label for="typeFilter">Loại hình</label>
+            <select class="form-control" id="typeFilter">
+              <option value="">Tất cả loại hình</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="form-group">
+            <label for="statusFilter">Trạng thái hoạt động</label>
+            <select class="form-control" id="statusFilter">
+              <option value="">Tất cả trạng thái</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

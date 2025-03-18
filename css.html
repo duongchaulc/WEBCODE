@@ -1,0 +1,3875 @@
+<!-- 
+/**
+ * ====================================================================
+ * QUẢN LÝ HỢP TÁC XÃ LAI CHÂU - CSS MASTER FILE
+ * ====================================================================
+ * Version: 3.1.0
+ * Last Updated: 2025-03-15 17:53:22
+ * Author: duongchaulc
+ * 
+ * CHANGELOG:
+ * 3.1.0 - Cải thiện hiển thị Dark Mode
+ * 3.0.9 - Tối ưu hóa bảng dữ liệu
+ * 3.0.8 - Sửa lỗi DatePicker trong chế độ tối
+ * 
+ * TABLE OF CONTENTS:
+ * -----------------
+ * 1. CSS VARIABLES & BASE SETTINGS
+ * 2. RESET & COMMON STYLES
+ * 3. HEADER & NAVIGATION
+ * 4. CARD & CONTAINER STYLES
+ * 5. TABLE & SCROLLING
+ * 6. FORM CONTROLS
+ * 7. BUTTON STYLES
+ * 8. STATUS BADGES
+ * 9. PAGINATION
+ * 10. LOADING & ANIMATIONS
+ * 11. TOOLTIPS & HELPERS
+ * 12. RESPONSIVE DESIGN
+ * 13. PRINT STYLING
+ * 14. DARK MODE STYLING
+ * 15. SPECIAL COMPONENTS
+ * 16. JAVASCRIPT INTERACTIONS
+ * ====================================================================
+ */
+-->
+
+<!-- Hỗ trợ font chữ đẹp và biểu tượng -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+/**
+ * ====================================================================
+ * 1. CSS VARIABLES & BASE SETTINGS
+ * ====================================================================
+ */
+  :root {
+    /* Màu sắc tinh tế hơn */
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: rgba(37, 99, 235, 0.1);
+    --secondary-color: #64748b;
+    --success-color: #10b981;
+    --success-light: rgba(16, 185, 129, 0.1);
+    --danger-color: #ef4444;
+    --danger-light: rgba(239, 68, 68, 0.1);
+    --warning-color: #f59e0b;
+    --warning-light: rgba(245, 158, 11, 0.1);
+    --info-color: #0ea5e9;
+    --info-light: rgba(14, 165, 233, 0.1);
+    --light-color: #f1f5f9;
+    --dark-color: #334155;
+    --white-color: #ffffff;
+    
+    /* Màu nền hàng tinh tế */
+    --odd-row-color: #ffffff;
+    --even-row-color: rgba(241, 245, 249, 0.5);
+    --hover-color: rgba(37, 99, 235, 0.05);
+    --highlight-color: rgba(245, 158, 11, 0.1);
+    --header-color: #f8fafc;
+    
+    /* Màu cho select dropdown trong light mode */
+    --select-bg-color: #ffffff;
+    --select-text-color: #334155;
+    --select-hover-bg-color: #f1f5f9;
+    --select-active-bg-color: #e0e7ff;
+    --select-active-text-color: #4f46e5;
+    --select-border-color: #e2e8f0;
+    
+    /* Bóng đổ */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    
+    /* Độ tròn góc */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    
+    /* Thời gian transition */
+    --transition-fast: 0.15s;
+    --transition-normal: 0.25s;
+    --transition-slow: 0.35s;
+    
+    /* Các kích thước cố định */
+    --scrollbar-height: 12px; /* Tăng chiều cao của thanh cuộn lên 150% (từ 8px lên 12px) */
+  }
+
+/**
+ * ====================================================================
+ * 2. RESET & COMMON STYLES
+ * ====================================================================
+ */
+  /* Reset và thiết lập cơ bản */
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f8fafc;
+    color: var(--dark-color);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .container-fluid {
+    padding: 0;
+  }
+
+  .content-container {
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+
+  /* CSS cho Light Mode Dropdown/Select */
+  /* Áp dụng cho tất cả các trình duyệt */
+  select,
+  .form-select {
+    background-color: var(--select-bg-color);
+    color: var(--select-text-color);
+    border: 1px solid var(--select-border-color);
+    transition: all var(--transition-fast) ease-in-out;
+  }
+
+  /* CSS cho dropdown/select options trong light mode */
+  select option,
+  .form-select option {
+    background-color: var(--select-bg-color);
+    color: var(--select-text-color);
+    padding: 8px 12px;
+  }
+
+  /* Hover state cho options */
+  select option:hover,
+  .form-select option:hover {
+    background-color: var(--select-hover-bg-color) !important;
+  }
+
+  /* Selected state cho options */
+  select option:checked,
+  .form-select option:checked {
+    background-color: var(--select-active-bg-color) !important;
+    color: var(--select-active-text-color) !important;
+    font-weight: 500;
+  }
+
+  /* Dropdown menu styling */
+  .dropdown-menu {
+    background-color: var(--select-bg-color);
+    border: 1px solid var(--select-border-color);
+    box-shadow: var(--shadow-md);
+  }
+
+  .dropdown-item {
+    color: var(--select-text-color);
+  }
+
+  .dropdown-item:hover,
+  .dropdown-item:focus {
+    background-color: var(--select-hover-bg-color);
+    color: var(--select-text-color);
+  }
+
+  .dropdown-item.active,
+  .dropdown-item:active {
+    background-color: var(--select-active-bg-color);
+    color: var(--select-active-text-color);
+  }
+
+/**
+ * ====================================================================
+ * 3. HEADER & NAVIGATION
+ * ====================================================================
+ */
+  .header-container {
+    background-color: var(--white-color);
+    box-shadow: var(--shadow-md);
+    position: relative;
+    z-index: 50;
+    transition: background-color 0.3s ease;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    margin: 0 auto;
+    transition: padding var(--transition-normal) ease;
+  }
+
+  .header-logo {
+    max-height: 3rem;
+    margin-right: 1.25rem;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-normal) ease;
+  }
+
+  .header-logo:hover {
+    transform: scale(1.05);
+  }
+
+  .header-title {
+    flex-grow: 1;
+  }
+
+  .header-title h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--primary-color);
+    transition: color var(--transition-fast) ease;
+  }
+
+  .header-title h1:hover {
+    color: var(--primary-hover);
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    text-align: right;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--light-color);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-fast) ease;
+  }
+
+  .user-info:hover {
+    background-color: var(--primary-light);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .user-avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    margin-left: 0.75rem;
+    object-fit: cover;
+    border: 2px solid var(--white-color);
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.3s ease;
+  }
+
+/**
+ * ====================================================================
+ * 4. CARD & CONTAINER STYLES 
+ * ====================================================================
+ */
+  .card {
+    margin-bottom: 1.5rem;
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    background-color: var(--white-color);
+    transition: all var(--transition-normal) ease;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .card-header {
+    background-color: var(--white-color);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+  
+  .card-header .card-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .card-body {
+    padding: 1.25rem;
+    transition: background-color 0.3s ease;
+  }
+
+  /* Hiệu ứng đồ họa nhẹ nhàng cho card */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--info-color));
+    opacity: 0;
+    transition: opacity var(--transition-normal) ease;
+  }
+
+  .card:hover::before {
+    opacity: 1;
+  }
+
+/**
+ * ====================================================================
+ * 5. TABLE & SCROLLING
+ * ====================================================================
+ */
+  /* Container cha */
+  .table-container {
+    position: relative;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--white-color);
+    overflow: hidden;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* Ẩn các nút điều hướng không cần thiết */
+  .table-scroll-btn,
+  #scrollLeftBtn,
+  #scrollRightBtn,
+  button:has(.fa-chevron-left),
+  button:has(.fa-chevron-right),
+  .fas.fa-chevron-left,
+  .fas.fa-chevron-right {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+  
+  /* Tối ưu hiệu suất render - chỉ sử dụng các thuộc tính ít gây reflow */
+  .table-scrollable-container {
+    width: 100%;
+    overflow: auto;
+    max-height: calc(100vh - 180px);
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    -webkit-transform: translate3d(0, 0, 0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
+    transform: translate3d(0, 0, 0);
+    transform: translateZ(0);
+    
+    /* Ẩn thanh cuộn ngang ở dưới */
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  /* Ẩn thanh cuộn ngang cho Chrome, Safari và Opera */
+  .table-scrollable-container::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Chỉ giữ lại thanh cuộn dọc */
+  .table-scrollable-container::-webkit-scrollbar:vertical {
+    width: 8px;
+    display: block;
+  }
+  
+  .table-scrollable-container::-webkit-scrollbar-thumb:vertical {
+    background-color: #cbd5e1;
+    border-radius: var(--radius-lg);
+  }
+  
+  .table-scrollable-container::-webkit-scrollbar-track:vertical {
+    background-color: var(--light-color);
+  }
+
+  /* Bảng chính */
+  .table {
+    margin-bottom: 0;
+    width: 100%;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    font-size: 0.9375rem;
+  }
+
+  .table th, .table td {
+    padding: 0.875rem 1rem !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: none !important;
+    /* Đảm bảo tất cả ô luôn hiển thị rõ nét */
+    opacity: 1 !important;
+    filter: none !important;
+  }
+
+  /* ===== HEADER CỐ ĐỊNH ===== */
+  .table thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 20 !important;
+    background-color: var(--header-color) !important;
+    border-top: none !important;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    text-align: left !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    font-size: 0.8125rem;
+    letter-spacing: 0.03em;
+    color: var(--dark-color);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+  }
+  
+  /* Căn giữa cho các header chứa số liệu */
+  .table th.text-center {
+    text-align: center !important;
+  }
+  
+  /* Căn phải cho các header chứa số liệu */
+  .table th.text-right,
+  .table th.number-cell {
+    text-align: right !important;
+  }
+  
+  /* ===== CỘT CỐ ĐỊNH ===== */
+  
+  /* CỘT STT */
+  .table td:first-child,
+  .table th:first-child {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 15 !important;
+    min-width: 4rem !important;
+    max-width: 4rem !important;
+    width: 4rem !important;
+    text-align: center !important;
+    box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* CỘT TÊN HTX */
+  .table td:nth-child(2),
+  .table th:nth-child(2) {
+    position: sticky !important;
+    left: 4rem !important;
+    z-index: 15 !important;
+    min-width: 16rem !important;
+    max-width: 20rem !important;
+    width: 20rem !important;
+    box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* CỘT THAO TÁC */
+  .table td:last-child,
+  .table th:last-child {
+    position: sticky !important;
+    right: 0 !important;
+    z-index: 15 !important;
+    min-width: 8rem !important;
+    width: 8rem !important;
+    background-color: inherit;
+    box-shadow: -2px 0 5px -2px rgba(0, 0, 0, 0.1) !important;
+    text-align: center !important;
+  }
+
+  /* Z-INDEX CAO HƠN CHO HEADER CỘT CỐ ĐỊNH */
+  .table thead th:first-child,
+  .table thead th:nth-child(2),
+  .table thead th:last-child {
+    z-index: 30 !important;
+  }
+
+  /* ===== MÀU NỀN HÀNG ===== */
+  
+  /* Màu nền cho hàng chẵn và lẻ */
+  .table tbody tr:nth-of-type(even) {
+    background-color: var(--even-row-color) !important;
+    transition: background-color 0.3s ease !important;
+  }
+  
+  .table tbody tr:nth-of-type(odd) {
+    background-color: var(--odd-row-color) !important;
+    transition: background-color 0.3s ease !important;
+  }
+  
+  /* Header background */
+  .table thead tr {
+    background-color: var(--header-color) !important;
+    transition: background-color 0.3s ease !important;
+  }
+  
+  /* Màu nền cho cột cố định */
+  .table tbody tr:nth-of-type(even) td:first-child,
+  .table tbody tr:nth-of-type(even) td:nth-child(2),
+  .table tbody tr:nth-of-type(even) td:last-child {
+    background-color: var(--even-row-color) !important;
+    transition: background-color 0.3s ease !important;
+  }
+  
+  .table tbody tr:nth-of-type(odd) td:first-child,
+  .table tbody tr:nth-of-type(odd) td:nth-child(2),
+  .table tbody tr:nth-of-type(odd) td:last-child {
+    background-color: var(--odd-row-color) !important;
+    transition: background-color 0.3s ease !important;
+  }
+  
+  /* Headers của cột cố định */
+  .table thead th:first-child,
+  .table thead th:nth-child(2),
+  .table thead th:last-child {
+    background-color: var(--header-color) !important;
+    transition: background-color 0.3s ease !important;
+  }
+
+  /* ===== HOVER & HIGHLIGHT EFFECTS ===== */
+  
+  /* Hiệu ứng hover với animation mượt mà */
+  .table-hover tbody tr {
+    transition: background-color var(--transition-fast) ease-in-out;
+  }
+  
+  .table-hover tbody tr:hover {
+    background-color: var(--hover-color) !important;
+    transform: none;
+  }
+  
+  /* Hiệu ứng hover cho cột cố định */
+  .table-hover tbody tr:hover td:first-child,
+  .table-hover tbody tr:hover td:nth-child(2),
+  .table-hover tbody tr:hover td:last-child {
+    background-color: var(--hover-color) !important;
+  }
+  
+  /* Hiệu ứng highlight */
+  .table tbody tr.highlight {
+    background-color: var(--highlight-color) !important;
+  }
+  
+  .table tbody tr.highlight td:first-child,
+  .table tbody tr.highlight td:nth-child(2),
+  .table tbody tr.highlight td:last-child {
+    background-color: var(--highlight-color) !important;
+  }
+  
+  /* Animation cho highlight */
+  @keyframes highlightPulse {
+    0% { background-color: rgba(245, 158, 11, 0.25); }
+    50% { background-color: rgba(245, 158, 11, 0.1); }
+    100% { background-color: rgba(245, 158, 11, 0.25); }
+  }
+  
+  .table tbody tr.highlight-animate {
+    animation: highlightPulse 2s ease infinite;
+  }
+
+  /* ===== DATA CELL STYLES ===== */
+  
+  /* Định dạng các ô số liệu */
+  td.number-cell {
+    text-align: right !important;
+    font-family: 'JetBrains Mono', 'Roboto Mono', monospace !important;
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-right {
+    text-align: right !important;
+  }
+
+  .text-center {
+    text-align: center !important;
+  }
+
+  /* HTX Row Fixes - Ngăn ngắt dòng cho hàng HTX */
+  .htx-row td {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Đảm bảo chiều rộng tối đa cho các ô */
+  }
+
+  /* Đặc biệt với tên HTX có thể dài hơn, cho phép rộng hơn */
+  .htx-row td.htx-name {
+    max-width: 300px;
+  }
+
+  /* Row selection styles */
+  .table tbody tr {
+    cursor: pointer;
+  }
+
+  .row-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+  }
+
+  .table tbody tr:hover .row-index {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    font-weight: 500;
+  }
+
+  .table tbody tr.highlight .row-index {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+    transform: scale(1.1);
+  }
+
+  /* Thanh cuộn custom mượt mà */
+  .custom-scroll-container {
+    position: relative;
+    width: 100%;
+    height: var(--scrollbar-height); /* Sử dụng biến đã tăng lên 150% (12px) */
+    margin-top: 0;
+    margin-bottom: 0;
+    background-color: #e2e8f0;
+    border-radius: var(--radius-lg);
+    transition: background-color 0.3s ease;
+  }
+
+  /* Indicator thanh cuộn ở trên */
+  .scroll-indicator {
+    position: absolute;
+    height: var(--scrollbar-height); /* Sử dụng biến đã tăng lên 150% (12px) */
+    top: 0;
+    left: 0;
+    background-color: #94a3b8;
+    border-radius: var(--radius-lg);
+    opacity: 0.7;
+    transition: opacity 0.2s ease, background-color 0.3s ease;
+  }
+  
+  .scroll-indicator:hover {
+    opacity: 0.9;
+    cursor: grab;
+  }
+  
+  .scroll-indicator:active {
+    cursor: grabbing;
+  }
+
+  /* Hiệu ứng chuyển đổi khi sắp xếp cột */
+  .sortable-header {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }
+
+  .sortable-header::after {
+    content: '↕️';
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    opacity: 0.3;
+    transition: all var(--transition-fast) ease;
+  }
+
+  .sortable-header:hover::after {
+    opacity: 0.8;
+  }
+
+  .sortable-header.sort-asc::after {
+    content: '↑';
+    opacity: 1;
+  }
+
+  .sortable-header.sort-desc::after {
+    content: '↓';
+    opacity: 1;
+  }
+
+/**
+ * ====================================================================
+ * 6. FORM CONTROLS
+ * ====================================================================
+ */
+  /* Search Container */
+  .search-container {
+    position: relative;
+    margin-bottom: 1rem;
+    transition: background-color 0.3s ease;
+  }
+
+  .search-container .form-control {
+    padding-left: 2.75rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal) ease;
+    height: 2.75rem;
+    background-color: white; /* Thêm transition cho background-color */
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .search-container .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+    outline: none;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--secondary-color);
+    pointer-events: none;
+    transition: color var(--transition-fast) ease;
+  }
+
+  .search-container .form-control:focus + .search-icon {
+    color: var(--primary-color);
+  }
+
+  /* Container cha cho bộ lọc */
+  .filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    transition: background-color 0.3s ease;
+  }
+
+  /* Hàng filter */
+  .filter-row {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    flex-wrap: wrap;
+    transition: background-color 0.3s ease;
+  }
+
+  /* Dòng đầu tiên có 4 trường lọc */
+  .filter-row:not(.filter-row-3) .form-group {
+    flex: 1 0 0;
+    min-width: calc(25% - 0.6rem); /* 25% cho 4 trường, trừ đi 3/4 khoảng cách */
+    max-width: calc(25% - 0.6rem);
+  }
+
+  /* Dòng thứ hai có 3 trường lọc, với kích thước đều nhau */
+  .filter-row-3 .form-group {
+    flex: 1 0 0;
+    min-width: calc(33.333% - 0.5rem); /* 33.333% cho 3 trường, trừ đi 2/3 khoảng cách */
+    max-width: calc(33.333% - 0.5rem);
+  }
+
+  /* Chung cho tất cả form-group */
+  .form-group {
+    margin-bottom: 0; /* Bỏ margin-bottom vì đã có gap */
+    position: relative;
+    transition: background-color 0.3s ease;
+  }
+
+  /* Label nhỏ hơn và đậm hơn để tiết kiệm không gian */
+  .form-group label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: var(--secondary-color);
+    transition: color 0.3s ease;
+  }
+
+  /* Giảm padding cho form control nhưng giữ nguyên chiều cao */
+  .form-select, .form-control {
+    padding: 0.375rem 0.5rem;
+    height: 2.25rem;
+    display: block;
+    width: 100%;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--dark-color);
+    background-color: white;
+    background-clip: padding-box;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast) ease-in-out;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .form-select:focus, .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+    outline: none;
+  }
+
+  /* Responsive - tablet và desktop nhỏ */
+  @media (min-width: 768px) and (max-width: 1199px) {
+    /* 2 trường/dòng trên tablet */
+    .filter-row:not(.filter-row-3) .form-group,
+    .filter-row-3 .form-group {
+      min-width: calc(50% - 0.375rem);
+      max-width: calc(50% - 0.375rem);
+    }
+  }
+
+  /* Responsive - mobile và tablet nhỏ */
+  @media (max-width: 767px) {
+    /* 1 trường/dòng trên mobile */
+    .filter-row:not(.filter-row-3) .form-group,
+    .filter-row-3 .form-group {
+      min-width: 100%;
+      max-width: 100%;
+    }
+  }
+
+/**
+ * ====================================================================
+ * 7. BUTTON STYLES
+ * ====================================================================
+ */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast) ease-in-out;
+    border: none;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  /* Hiệu ứng ripple cho buttons */
+  .btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+
+  .btn:focus:not(:active)::after {
+    animation: ripple 0.5s ease-out;
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0, 0);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(20, 20);
+      opacity: 0;
+    }
+  }
+
+  /* Primary Buttons */
+  .btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
+  }
+
+  /* Outline Buttons */
+  .btn-outline-primary {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .btn-outline-primary:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-hover);
+  }
+
+  /* Button Sizes */
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .btn-md {
+    padding: 0.5rem 1rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .btn-lg {
+    padding: 0.625rem 1.25rem;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  /* Button Groups */
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  /* Icon Buttons */
+  .btn-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .btn-icon.btn-sm {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .btn-icon i, .btn-icon svg {
+    font-size: 1rem;
+  }
+
+  /* Action buttons in table */
+  .table .btn-action {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    margin-right: 5px;
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+    font-size: 0.875rem;
+    transition: all 0.2s;
+  }
+
+  .table .btn-action:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+  }
+
+  .btn-action.danger:hover {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+  }
+
+  .btn-action.success:hover {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+  }
+
+  /* Hiệu ứng nổi lên khi hover vào các controls */
+  .card-header button:hover,
+  .filter-container .form-control:hover,
+  .filter-container .form-select:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Hiệu ứng làm nổi bật các nút */
+  .btn {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  /* Hiệu ứng đổ bóng khi active */
+  .shadow-on-active:active {
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  }
+
+/**
+ * ====================================================================
+ * 8. STATUS BADGES
+ * ====================================================================
+ */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: 500;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 50rem;
+    transition: all var(--transition-fast) ease-in-out;
+  }
+
+  .badge-active {
+    color: #064e3b;
+    background-color: #d1fae5;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .badge-inactive {
+    color: #991b1b;
+    background-color: #fee2e2;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .badge-pending {
+    color: #92400e;
+    background-color: #fef3c7;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Badge với hiệu ứng nổi */
+  .badge {
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  
+  .badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  }
+
+/**
+ * ====================================================================
+ * 9. PAGINATION
+ * ====================================================================
+ */
+  .pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background-color: #f8fafc;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .pagination {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .pagination li {
+    margin: 0;
+  }
+
+  .pagination .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--dark-color);
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    margin-left: -1px;
+    cursor: pointer;
+    transition: all var(--transition-fast) ease;
+  }
+
+  .pagination .page-link:hover {
+    background-color: var(--light-color);
+    color: var(--primary-color);
+    z-index: 2;
+  }
+
+  .pagination .active .page-link {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    z-index: 3;
+  }
+
+  .pagination-info {
+    font-size: 0.875rem;
+    color: var(--secondary-color);
+    transition: color 0.3s ease;
+  }
+
+/**
+ * ====================================================================
+ * 10. LOADING & ANIMATIONS
+ * ====================================================================
+ */
+  /* ===== LOADING SPINNER ===== */
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 0.25rem solid rgba(37, 99, 235, 0.15);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spinner 0.8s linear infinite;
+  }
+
+  @keyframes spinner {
+    to { transform: rotate(360deg); }
+  }
+
+  .loading-text {
+    color: var(--secondary-color);
+    font-size: 0.9375rem;
+    transition: color 0.3s ease;
+  }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    color: var(--border-color);
+    margin-bottom: 15px;
+  }
+
+  .empty-state-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 5px;
+  }
+
+  .empty-state-desc {
+    color: var(--text-light);
+    max-width: 400px;
+  }
+
+  /* Hiệu ứng skeleton loading */
+  .skeleton-loader {
+    display: block;
+    width: 100%;
+    height: 1rem;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    border-radius: var(--radius-sm);
+    animation: skeleton-loading 1.5s infinite;
+  }
+
+  @keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ===== ANIMATION UTILITIES ===== */
+  .fade-in {
+    animation: fadeIn var(--transition-normal) ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .slide-in-up {
+    animation: slideInUp var(--transition-normal) ease;
+  }
+  
+  @keyframes slideInUp {
+    from {
+      transform: translateY(1rem);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* Hiệu ứng transition cho các hàng khi thêm/xóa */
+  .table-row-enter-active,
+  .table-row-leave-active {
+    transition: all 0.5s ease;
+  }
+
+  .table-row-enter-from,
+  .table-row-leave-to {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  /* Thêm hiệu ứng nhấp nháy cho các thông báo */
+  @keyframes blink {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+  }
+
+  .blink {
+    animation: blink 1.5s linear infinite;
+  }
+
+  /* Hiệu ứng cho header khi scroll */
+  .header-sticky {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    animation: slideDown 0.3s ease;
+    box-shadow: var(--shadow-lg);
+  }
+
+  @keyframes slideDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+  }
+
+  /* Hiệu ứng ripple khi click */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.7);
+    width: 100px;
+    height: 100px;
+    margin-top: -50px;
+    margin-left: -50px;
+    animation: ripple-effect 0.6s linear;
+    transform: scale(0);
+    opacity: 1;
+    pointer-events: none;
+  }
+  
+  @keyframes ripple-effect {
+    0% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
+
+/**
+ * ====================================================================
+ * 11. TOOLTIPS & HELPERS
+ * ====================================================================
+ */
+  /* ===== TOOLTIPS ===== */
+  [data-tooltip] {
+    position: relative;
+    cursor: pointer;
+  }
+
+  [data-tooltip]:before, [data-tooltip]:after {
+    position: absolute;
+    visibility: hidden;
+    opacity: 0;
+    transition: all var(--transition-fast) ease;
+    bottom: 100%;
+    left: 50%;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  [data-tooltip]:before {
+    content: attr(data-tooltip);
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    width: max-content;
+    max-width: 250px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    background-color: var(--dark-color);
+    color: white;
+    text-align: center;
+    transform: translateX(-50%);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  [data-tooltip]:after {
+    content: '';
+    border-top: 0.25rem solid var(--dark-color);
+    border-left: 0.25rem solid transparent;
+    border-right: 0.25rem solid transparent;
+    margin-bottom: 0.25rem;
+    transform: translateX(-50%);
+    transition: border-color 0.3s ease;
+  }
+
+  [data-tooltip]:hover:before, [data-tooltip]:hover:after {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* Focus styles for accessibility */
+  :focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+
+  /* Nút trở về đầu trang */
+  .back-to-top {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 5rem; /* Để tránh đè lên nút chế độ tối */
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: var(--white-color);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    z-index: 99;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-normal) ease;
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .back-to-top:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Nút chuyển đổi chế độ tối/sáng */
+  .theme-toggle {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    z-index: 1000;
+    transition: all var(--transition-normal) ease;
+  }
+
+  .theme-toggle:hover {
+    transform: scale(1.1);
+  }
+
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+/**
+ * ====================================================================
+ * 12. RESPONSIVE DESIGN
+ * ====================================================================
+ */
+  @media (max-width: 992px) {
+    .card-header {
+      padding: 1rem 1.25rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    
+    .card-header .card-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    
+    .filter-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .filter-container .form-group {
+      width: 100%;
+    }
+    
+    .pagination-container {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .pagination {
+      margin-top: 0.5rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .header {
+      flex-direction: column;
+      text-align: center;
+      padding: 1rem;
+    }
+    
+    .header-logo {
+      margin-right: 0;
+      margin-bottom: 0.75rem;
+    }
+    
+    .user-info {
+      margin-top: 0.75rem;
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .action-buttons {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .pagination {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+    
+    .pagination li:not(.active):not(:first-child):not(:last-child) {
+      display: none;
+    }
+  }
+
+/**
+ * ====================================================================
+ * 13. PRINT STYLING
+ * ====================================================================
+ */
+  /* CSS cho nút in và trang in */
+  #printButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  #printButton .bi-printer {
+    font-size: 1rem;
+  }
+
+  /* Thông báo đang chuẩn bị in */
+  .print-preparing {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    font-size: 1.25rem;
+    color: var(--primary-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .print-preparing i {
+    margin-right: 0.5rem;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  /* CSS cho trang in */
+  @page {
+    size: landscape;
+    margin: 1cm 1cm;
+  }
+
+  @media print {
+    body {
+      background-color: white;
+      font-size: 11pt; /* Giảm kích thước font để vừa với khổ ngang */
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+      font-size: 10pt; /* Giảm kích thước font cho bảng */
+    }
+    
+    .table th, .table td {
+      border: 1px solid #ddd;
+      padding: 5px; /* Giảm padding để vừa với nhiều cột hơn */
+    }
+    
+    .table th {
+      background-color: #f2f2f2 !important;
+      color: black !important;
+      font-weight: bold;
+      text-align: left;
+    }
+    
+    /* Các CSS khác giữ nguyên */
+    .table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    
+    /* Ẩn các thành phần không cần thiết khi in */
+    .table-scroll-btn,
+    .custom-scroll-container,
+    .action-buttons .btn:not(.print-action),
+    .pagination-container,
+    .card-header .btn,
+    .back-to-top,
+    .theme-toggle,
+    .filter-container {
+      display: none !important;
+    }
+    
+    /* Đảm bảo các cột cố định không có hiệu ứng sticky khi in */
+    .table th:first-child,
+    .table td:first-child,
+    .table th:nth-child(2),
+    .table td:nth-child(2),
+    .table th:last-child,
+    .table td:last-child {
+      position: static !important;
+      left: auto !important;
+      right: auto !important;
+    }
+    
+    /* Ẩn cột "Thao tác" */
+    .table th:last-child,
+    .table td:last-child {
+      display: none !important;
+    }
+    
+    /* Thêm ngắt trang phù hợp */
+    .print-container {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Tối ưu cho khổ ngang */
+    .print-table {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: visible;
+    }
+
+    .print-header h1 {
+      font-size: 18pt;
+    }
+
+    .print-footer {
+      margin-top: 15px;
+    }
+  }
+
+/**
+ * ====================================================================
+ * 14. DARK MODE STYLING
+ * ====================================================================
+ */
+  /* CSS cho chế độ tối (có thể bật tắt bằng JavaScript) */
+  .dark-mode {
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-light: rgba(59, 130, 246, 0.2);
+    --secondary-color: #94a3b8;
+    --dark-color: #e2e8f0;
+    --light-color: #1e293b;
+    --white-color: #0f172a;
+    --odd-row-color: #1e293b;
+    --even-row-color: #172033;
+    --hover-color: rgba(59, 130, 246, 0.1);
+    --header-color: #0f172a;
+    
+    /* Màu cho select dropdown trong dark mode */
+    --select-bg-color: #1e293b;
+    --select-text-color: #f8fafc;
+    --select-hover-bg-color: #334155;
+    --select-active-bg-color: #3b82f6;
+    --select-active-text-color: #ffffff;
+    --select-border-color: #475569;
+  }
+
+  /* Xử lý toàn diện màu nền để khắc phục khoảng trống còn sót */
+  .dark-mode {
+    /* Đảm bảo cả HTML và BODY đều có màu nền tối */
+    background-color: #0f172a;
+  }
+
+  /* Nền tối cho các phần tử HTML và BODY */
+  .dark-mode html,
+  .dark-mode body {
+    background-color: #0f172a !important;
+  }
+
+  /* Xử lý các khoảng trống giữa các container */
+  .dark-mode main,
+  .dark-mode .main,
+  .dark-mode .main-content,
+  .dark-mode section,
+  .dark-mode .section,
+  .dark-mode .page-content,
+  .dark-mode .content-wrapper,
+  .dark-mode .content-area {
+    background-color: #0f172a !important;
+  }
+
+  /* Loại bỏ outline hoặc background cho khoảng trống sau header */
+  .dark-mode .header-container + *,
+  .dark-mode .header-container + div,
+  .dark-mode .header + *,
+  .dark-mode .header + div {
+    background-color: #0f172a !important;
+  }
+
+  /* Xử lý các khoảng trống (gap) giữa các thành phần, khắc phục màu trắng */
+  .dark-mode div {
+    background-color: inherit;
+  }
+
+  /* Ưu tiên màu nền cho các container con trực tiếp */
+  .dark-mode body > div,
+  .dark-mode body > main,
+  .dark-mode body > section {
+    background-color: #0f172a !important;
+  }
+
+  /* Đảm bảo không có khoảng cách màu trắng */
+  .dark-mode hr,
+  .dark-mode br {
+    background-color: transparent;
+  }
+
+  /* Chế độ tối cho body và nền trang */
+  .dark-mode body {
+    background-color: #0f172a !important;
+    color: #e2e8f0;
+  }
+
+  /* Chế độ tối cho bảng */
+  .dark-mode .table {
+    color: #e2e8f0;
+  }
+
+  .dark-mode .table th {
+    color: #f8fafc;
+  }
+
+  /* Chế độ tối cho card */
+  .dark-mode .card,
+  .dark-mode .table-responsive,
+  .dark-mode .table-container {
+    background-color: #1e293b;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  }
+
+  .dark-mode .card-header {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+  }
+  
+  /* Giải pháp toàn diện cho màu nền trong Dark Mode */
+
+  /* Đặt màu nền cho tất cả container cấp cao */
+  .dark-mode .container,
+  .dark-mode .container-fluid,
+  .dark-mode .content-container,
+  .dark-mode [class*="container"] {
+    background-color: #0f172a !important;
+  }
+
+  /* Khối card và các thành phần */
+  .dark-mode .card,
+  .dark-mode .card-body,
+  .dark-mode .card-header,
+  .dark-mode .card-footer {
+    background-color: #1e293b !important;
+  }
+
+  /* Tất cả row và column từ bootstrap */
+  .dark-mode .row,
+  .dark-mode [class*="col-"] {
+    background-color: inherit !important;
+  }
+
+  /* Các wrapper chung */
+  .dark-mode .wrapper,
+  .dark-mode .main-wrapper,
+  .dark-mode .content-wrapper,
+  .dark-mode [class*="-wrapper"],
+  .dark-mode [class*="-container"] {
+    background-color: #0f172a !important;
+  }
+
+  /* Container tìm kiếm và filter với độ ưu tiên cao hơn */
+  .dark-mode .search-container,
+  .dark-mode .filter-container,
+  .dark-mode .filter-row {
+    background-color: #1e293b !important;
+  }
+
+  /* Fix lỗi màu header */
+  .dark-mode .header-container,
+  .dark-mode .header {
+    background-color: #1e293b !important;
+  }
+
+  /* Fix màu nền cho các vùng không có class cụ thể */
+  .dark-mode div:not([class]) {
+    background-color: inherit;
+  }
+
+  /* Đảm bảo thùng chứa bảng có màu tối */
+  .dark-mode .table-container {
+    background-color: #1e293b !important;
+  }
+
+  /* Điều chỉnh tất cả các phần tử trong header */
+  .dark-mode .header-container,
+  .dark-mode .header,
+  .dark-mode .header-title,
+  .dark-mode .user-info {
+    background-color: #1e293b !important; /* Sử dụng !important để ghi đè */
+    color: #e2e8f0;
+  }
+
+  /* Nếu có bất kỳ phần tử nào trong header có thuộc tính background-color inline */
+  .dark-mode [style*="background-color"] {
+    background-color: #1e293b !important;
+  }
+
+  /* Đảm bảo chuyển đổi màu cho user-info */
+  .dark-mode .user-info {
+    background-color: #334155 !important; /* Tối hơn một chút cho phân biệt */
+  }
+
+  /* Giữ các tiêu đề chính với màu hiện tại */
+  .dark-mode .header-title h1 {
+    color: var(--primary-color);
+  }
+
+  /* Các phần tử con khác trong header nếu có */
+  .dark-mode .header-container *:not(.header-title h1):not(i):not(button):not(.btn) {
+    color: #e2e8f0;
+  }
+  
+  /* Chế độ tối cho card-body */
+  .dark-mode .card-body {
+    background-color: #1e293b;
+    color: #e2e8f0;
+  }
+
+  /* Đảm bảo khối tìm kiếm có nền tối */
+  .dark-mode .search-container {
+    background-color: #1e293b;
+  }
+
+  /* Khối chứa các bộ lọc */
+  .dark-mode .filter-container {
+    background-color: #1e293b;
+  }
+
+  /* Các khối container khác có thể cần điều chỉnh */
+  .dark-mode .content-container,
+  .dark-mode .filter-row,
+  .dark-mode .form-group {
+    background-color: #1e293b;
+    color: #e2e8f0;
+  }
+
+  /* Xử lý background cho các vùng container thông thường */
+  .dark-mode div[class*="container"] {
+    background-color: inherit;
+  }
+
+  /* ===== SELECT DROPDOWN IN DARK MODE ===== */
+  /* Fix cho select options và dropdown menu trong Dark Mode */
+  .dark-mode select option,
+  .dark-mode .form-select option,
+  .dark-mode .dropdown-menu,
+  .dark-mode .dropdown-item,
+  .dark-mode .select2-dropdown,
+  .dark-mode .select2-results,
+  .dark-mode .select2-results__option,
+  .dark-mode [role="listbox"],
+  .dark-mode [role="menu"],
+  .dark-mode [role="combobox"] + ul,
+  .dark-mode .selectpicker + .dropdown-menu,
+  .dark-mode .bootstrap-select .dropdown-menu,
+  .dark-mode .multiselect-container,
+  .dark-mode ul[class*="select"],
+  .dark-mode ul[class*="dropdown"] {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+  }
+
+  /* Hiệu ứng hover trên dropdown items */
+  .dark-mode .dropdown-item:hover,
+  .dark-mode .dropdown-menu > li:hover,
+  .dark-mode select option:hover,
+  .dark-mode .form-select option:hover,
+  .dark-mode .select2-results__option:hover,
+  .dark-mode .select2-results__option--highlighted,
+  .dark-mode [role="option"]:hover,
+  .dark-mode .multiselect-container > li:hover,
+  .dark-mode .bootstrap-select .dropdown-menu li:hover {
+    background-color: #334155 !important;
+    color: white !important;
+  }
+
+  /* Items được chọn trong dropdown */
+  .dark-mode select option:checked,
+  .dark-mode .form-select option:checked,
+  .dark-mode .dropdown-item.active,
+  .dark-mode .dropdown-item:active,
+  .dark-mode .select2-results__option[aria-selected=true],
+  .dark-mode .select2-results__option--selected,
+  .dark-mode [role="option"][aria-selected="true"],
+  .dark-mode .multiselect-container > li.active,
+  .dark-mode .bootstrap-select .dropdown-menu li.selected {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+
+  /* Đảm bảo màu chữ của tất cả các option trong dropdown */
+  .dark-mode select option,
+  .dark-mode .form-select option {
+    color: #f8fafc !important;
+  }
+
+  /* Header của dropdown menu nếu có */
+  .dark-mode .dropdown-header,
+  .dark-mode .select2-results__group,
+  .dark-mode [role="listbox"] [role="presentation"],
+  .dark-mode .multiselect-container > li.multiselect-group label {
+    color: #94a3b8 !important;
+    background-color: #0f172a !important;
+  }
+
+  /* Chế độ tối cho form controls */
+  .dark-mode .form-select, 
+  .dark-mode .form-control {
+    background-color: #0f172a !important; /* Thay đổi từ #1e293b để tối hơn và tương phản tốt hơn */
+    color: #e2e8f0;
+    border-color: #475569;
+  }
+
+  .dark-mode .form-select:focus, 
+  .dark-mode .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    outline: none;
+  }
+
+  .dark-mode .form-group label {
+    color: #94a3b8;
+  }
+
+  /* Chế độ tối cho phân trang */
+  .dark-mode .pagination-container {
+    background-color: #1e293b;
+    border-color: #334155;
+  }
+
+  .dark-mode .pagination .page-link {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    border-color: #475569;
+  }
+
+  .dark-mode .pagination .page-link:hover {
+    background-color: #334155;
+  }
+
+  .dark-mode .pagination-info {
+    color: #94a3b8;
+  }
+
+  /* Chế độ tối cho badges */
+  .dark-mode .badge-active {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #4ade80;
+  }
+
+  .dark-mode .badge-inactive {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+  }
+
+  .dark-mode .badge-pending {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+  }
+
+  /* Chế độ tối cho thanh tìm kiếm */
+  .dark-mode .search-container .form-control {
+    background-color: #0f172a !important; /* Thay đổi từ #1e293b để tối hơn và tương phản tốt hơn */
+    color: #e2e8f0;
+    border-color: #475569;
+  }
+
+  .dark-mode .search-icon {
+    color: #94a3b8;
+  }
+
+  /* Chế độ tối cho custom scrollbar */
+  .dark-mode .custom-scroll-container {
+    background-color: #334155;
+  }
+
+  .dark-mode .scroll-indicator {
+    background-color: #64748b;
+  }
+
+  .dark-mode .table-scrollable-container::-webkit-scrollbar-thumb:vertical {
+    background-color: #64748b;
+  }
+
+  .dark-mode .table-scrollable-container::-webkit-scrollbar-track:vertical {
+    background-color: #334155;
+  }
+
+  /* Chế độ tối cho back-to-top */
+  .dark-mode .back-to-top {
+    background-color: #1e293b;
+    color: #3b82f6;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Chế độ tối cho tooltips */
+  .dark-mode [data-tooltip]:before {
+    background-color: #475569;
+    color: #f1f5f9;
+  }
+
+  .dark-mode [data-tooltip]:after {
+    border-top-color: #475569;
+  }
+
+  /* Chế độ tối cho print-preparing */
+  .dark-mode .print-preparing {
+    background-color: rgba(15, 23, 42, 0.9);
+    color: #3b82f6;
+  }
+
+  /* Chế độ tối cho org-info */
+  .dark-mode .org-info {
+    background-color: #1e293b;
+  }
+
+  .dark-mode .designer-info {
+    color: #e2e8f0;
+  }
+
+  .dark-mode .time-info,
+  .dark-mode .user-login-info {
+    color: #94a3b8;
+    border-color: #334155;
+  }
+
+  /* Chế độ tối cho buttons */
+  .dark-mode .btn-outline-primary {
+    border-color: #3b82f6;
+    color: #3b82f6;
+  }
+
+  .dark-mode .btn-outline-primary:hover {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+  
+  /* Fix màu chữ trong Dark Mode khi hover và highlight - Thêm ngày 2025-03-13 */
+  .dark-mode .table tbody tr:hover td,
+  .dark-mode .table tbody tr.highlight td {
+    color: #e2e8f0 !important;
+  }
+
+  .dark-mode .table tbody tr:hover td *:not(.badge):not(.btn),
+  .dark-mode .table tbody tr.highlight td *:not(.badge):not(.btn) {
+    color: #e2e8f0 !important;
+  }
+
+  .dark-mode .table-hover tbody tr:hover {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+  }
+
+  .dark-mode .table tbody tr.highlight {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+  }
+
+  .dark-mode .table tbody tr.highlight-animate {
+    animation: darkModeHighlightPulse 2s ease infinite;
+  }
+
+  @keyframes darkModeHighlightPulse {
+    0% { background-color: rgba(59, 130, 246, 0.25); }
+    50% { background-color: rgba(59, 130, 246, 0.15); }
+    100% { background-color: rgba(59, 130, 246, 0.25); }
+  }
+
+  /* Đảm bảo các nút trong hàng được hover vẫn có màu đúng */
+  .dark-mode .table tbody tr:hover .btn-primary,
+  .dark-mode .table tbody tr.highlight .btn-primary {
+    color: white !important;
+  }
+
+  .dark-mode .table tbody tr:hover .btn-outline-primary,
+  .dark-mode .table tbody tr.highlight .btn-outline-primary {
+    color: var(--primary-color) !important;
+  }
+
+/**
+ * ====================================================================
+ * 15. SPECIAL COMPONENTS
+ * ====================================================================
+ */
+  /* ===== MODAL STYLING & FIXES ===== */
+
+  /* GIẢI PHÁP TOÀN DIỆN CHO MODAL TRONG CHẾ ĐỘ TỐI */
+  
+  /* 1. Reset các thuộc tính quan trọng của modal và backdrop */
+  .modal-backdrop {
+    z-index: 1040 !important;
+  }
+
+  .modal {
+    z-index: 1050 !important;
+  }
+
+  /* 2. Cấu hình đặc biệt cho dark mode */
+  .dark-mode .modal-backdrop,
+  .dark-mode .modal-backdrop.show {
+    opacity: 0.8 !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+  }
+
+  .dark-mode .modal,
+  .dark-mode .modal.fade.show {
+    background-color: transparent !important; /* Modal container phải trong suốt */
+  }
+
+  /* Đặt kích thước chuẩn và KHÔNG bị thu nhỏ cho dialog */
+  .dark-mode .modal-dialog {
+    z-index: 1050 !important;
+    display: flex !important;
+    align-items: center !important;
+    min-height: calc(100% - 3.5rem) !important;
+    margin: 1.75rem auto !important;
+    transform: none !important;
+  }
+
+  /* Đảm bảo kích thước modal giống với light mode */
+  .dark-mode .modal-dialog.modal-sm {
+    max-width: 300px !important;
+    width: 300px !important;
+  }
+
+  .dark-mode .modal-dialog.modal-lg {
+    max-width: 800px !important;
+    width: 800px !important;
+  }
+
+  .dark-mode .modal-dialog.modal-xl {
+    max-width: 1140px !important;
+    width: 1140px !important;
+  }
+
+  .dark-mode .modal-dialog:not(.modal-sm):not(.modal-lg):not(.modal-xl) {
+    max-width: 500px !important;
+    width: 500px !important;
+  }
+
+  /* 3. Đảm bảo modal content không bị trong suốt và có chiều rộng đầy đủ */
+  .dark-mode .modal-content {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border: none !important;
+    box-shadow: 0 0 35px rgba(0, 0, 0, 0.5) !important;
+    position: relative !important;
+    pointer-events: auto !important;
+    width: 100% !important; /* Đảm bảo chiếm toàn bộ chiều rộng */
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* 4. Định dạng các phần của modal */
+  .dark-mode .modal-header {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-bottom-color: #334155 !important;
+    opacity: 1 !important;
+  }
+
+  .dark-mode .modal-body {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    opacity: 1 !important;
+    overflow-y: auto !important; /* Cho phép cuộn */
+    flex: 1 1 auto !important;
+    max-height: 70vh !important;
+  }
+
+  .dark-mode .modal-footer {
+    background-color: #1e293b !important;
+    border-top-color: #334155 !important;
+    color: #f8fafc !important;
+    opacity: 1 !important;
+  }
+
+  /* 5. Đảm bảo nút đóng (x) hoạt động đúng */
+  .dark-mode .modal-header .close,
+  .dark-mode .modal-header .btn-close {
+    color: #f8fafc !important;
+    text-shadow: none !important;
+    opacity: 0.7 !important;
+  }
+
+  .dark-mode .modal-header .close:hover,
+  .dark-mode .modal-header .btn-close:hover {
+    opacity: 1 !important;
+  }
+
+  /* 6. Đảm bảo các điều khiển (form controls) trong modal hiển thị đúng */
+  .dark-mode .modal-body input,
+  .dark-mode .modal-body select,
+  .dark-mode .modal-body textarea,
+  .dark-mode .modal-body .form-control,
+  .dark-mode .modal-body .custom-select {
+    background-color: #0f172a !important; /* Tối hơn cho sự tương phản */
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+  }
+
+  .dark-mode .modal-body label {
+    color: #cbd5e1 !important;
+  }
+
+  /* 7. Đặc biệt, xử lý các loại modal và dialog khác */
+  .dark-mode [role="dialog"] .modal-content,
+  .dark-mode .swal2-popup,
+  .dark-mode .popover,
+  .dark-mode .toast,
+  .dark-mode .alert-dialog,
+  .dark-mode [aria-modal="true"]:not(.modal) {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+    box-shadow: 0 0 35px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* 8. Chặn mọi backdrop có thể nằm trên modal */
+  .dark-mode .modal ~ .modal-backdrop,
+  .dark-mode .modal ~ div[class*="backdrop"],
+  .dark-mode .modal ~ div[class*="overlay"] {
+    display: none !important;
+  }
+  
+  /* 9. Vô hiệu hóa tất cả các hiệu ứng backdrop-filter trong dark mode */
+  .dark-mode .modal,
+  .dark-mode .modal-dialog,
+  .dark-mode .modal-content,
+  .dark-mode .modal-backdrop,
+  .dark-mode [class*="modal"],
+  .dark-mode [class*="backdrop"],
+  .dark-mode [class*="overlay"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* 10. Sửa lỗi thứ tự chồng lớp (stacking order) */
+  .dark-mode .modal-open .modal {
+    display: block !important;
+  }
+
+  /* 11. Đảm bảo các nút trong modal hoạt động đúng */
+  .dark-mode .modal-footer .btn,
+  .dark-mode .modal-body .btn {
+    position: relative !important;
+    z-index: 3 !important;
+    pointer-events: auto !important; 
+  }
+
+  /* 13. Tăng cường hiệu ứng bóng đổ cho phân biệt tốt hơn */
+  .dark-mode .modal-content {
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* ===== DATEPICKER DARK MODE FIXES ===== */
+  /* Datepicker trong dark mode - FIX MÀU CHỮ VÀ SỐ */
+  /* Selector cụ thể cho datepicker của Bootstrap và các thư viện phổ biến */
+  .dark-mode .datepicker,
+  .dark-mode .bootstrap-datepicker,
+  .dark-mode .ui-datepicker,
+  .dark-mode .flatpickr-calendar,
+  .dark-mode .daterangepicker,
+  .dark-mode .picker,
+  .dark-mode .picker__box,
+  .dark-mode .picker--date,
+  .dark-mode [class*="datepicker"],
+  .dark-mode .calendar-dropdown {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+  }
+
+  /* Fix màu cho header datepicker */
+  .dark-mode .datepicker-header,
+  .dark-mode .datepicker-title,
+  .dark-mode .ui-datepicker-header,
+  .dark-mode .flatpickr-month,
+  .dark-mode .daterangepicker .calendar-table .month,
+  .dark-mode .picker__header,
+  .dark-mode [class*="datepicker"] [class*="header"],
+  .dark-mode [class*="datepicker"] [class*="title"] {
+    background-color: #334155 !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+  }
+
+  /* Màu sáng cho ngày, tháng, năm */
+  .dark-mode .datepicker-days,
+  .dark-mode .datepicker-months,
+  .dark-mode .datepicker-years,
+  .dark-mode .ui-datepicker-calendar,
+  .dark-mode .flatpickr-days,
+  .dark-mode .daterangepicker td,
+  .dark-mode .daterangepicker th,
+  .dark-mode .picker__table,
+  .dark-mode [class*="datepicker"] [class*="day"],
+  .dark-mode [class*="datepicker"] [class*="month"],
+  .dark-mode [class*="datepicker"] [class*="year"],
+  .dark-mode [class*="datepicker"] td,
+  .dark-mode [class*="datepicker"] th,
+  .dark-mode .calendar-dropdown td,
+  .dark-mode .calendar-dropdown th {
+    color: #f8fafc !important;
+  }
+
+  /* Ngày đang chọn (hiện tại) */
+  .dark-mode .datepicker-days .active,
+  .dark-mode .datepicker-months .active,
+  .dark-mode .datepicker-years .active,
+  .dark-mode .ui-datepicker-calendar .ui-state-active,
+  .dark-mode .flatpickr-day.selected,
+  .dark-mode .daterangepicker td.active,
+  .dark-mode .picker__day--selected,
+  .dark-mode [class*="datepicker"] .active,
+  .dark-mode [class*="datepicker"] [class*="selected"],
+  .dark-mode .calendar-dropdown .active {
+    background-color: #3b82f6 !important;
+    color: white !important;
+    font-weight: bold !important;
+  }
+
+  /* Màu nút chuyển tháng/năm */
+  .dark-mode .datepicker-switch,
+  .dark-mode .datepicker-next,
+  .dark-mode .datepicker-prev,
+  .dark-mode .ui-datepicker-prev,
+  .dark-mode .ui-datepicker-next,
+  .dark-mode .flatpickr-prev-month,
+  .dark-mode .flatpickr-next-month,
+  .dark-mode .daterangepicker .prev,
+  .dark-mode .daterangepicker .next,
+  .dark-mode .picker__nav--prev,
+  .dark-mode .picker__nav--next,
+  .dark-mode [class*="datepicker"] [class*="prev"],
+  .dark-mode [class*="datepicker"] [class*="next"],
+  .dark-mode [class*="datepicker"] [class*="switch"],
+  .dark-mode .calendar-dropdown .prev,
+  .dark-mode .calendar-dropdown .next {
+    color: #f8fafc !important;
+  }
+
+  /* Thêm focus nổi bật cho ngày tháng khi hover */
+  .dark-mode .datepicker-days td:hover,
+  .dark-mode .datepicker-months td:hover,
+  .dark-mode .datepicker-years td:hover,
+  .dark-mode .ui-datepicker-calendar td:hover,
+  .dark-mode .flatpickr-day:hover,
+  .dark-mode .daterangepicker td:hover,
+  .dark-mode .picker__day:hover,
+  .dark-mode [class*="datepicker"] td:hover,
+  .dark-mode .calendar-dropdown td:hover,
+  .dark-mode .calendar-dropdown th:hover {
+    background-color: #3b82f6 !important;
+    color: white !important;
+    cursor: pointer;
+  }
+
+  /* Đảm bảo màu vô hiệu hóa không quá tối */
+  .dark-mode .datepicker-days .disabled,
+  .dark-mode .ui-datepicker-calendar .ui-state-disabled,
+  .dark-mode .flatpickr-day.disabled,
+  .dark-mode .daterangepicker td.disabled,
+  .dark-mode .picker__day--disabled,
+  .dark-mode [class*="datepicker"] .disabled,
+  .dark-mode .calendar-dropdown .disabled {
+    color: #64748b !important;
+    opacity: 0.6 !important;
+  }
+
+  /* FIX ĐẶC THÙ CHO DATEPICKER CỦA BOOTSTRAP */
+  .dark-mode .datepicker table tr td,
+  .dark-mode .datepicker table tr th {
+    color: #f8fafc !important;
+  }
+
+  .dark-mode .datepicker table tr td.day:hover {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+
+  .dark-mode .datepicker table tr td.active {
+    background-color: #3b82f6 !important;
+    background-image: none !important;
+    color: white !important;
+  }
+
+  .dark-mode .datepicker .datepicker-switch:hover,
+  .dark-mode .datepicker .prev:hover,
+  .dark-mode .datepicker .next:hover {
+    background-color: #334155 !important;
+  }
+
+  /* FIX CHO TÊN THÁNG VÀ HEADER THÁNG */
+  .dark-mode .datepicker .datepicker-months .month,
+  .dark-mode .datepicker .datepicker-years .year,
+  .dark-mode .datepicker-days thead tr:first-child {
+    color: #f8fafc !important;
+  }
+
+  /* FIX CHO TÊN CỦA CÁC NGÀY TRONG TUẦN */
+  .dark-mode .datepicker-days thead tr:nth-child(2) th {
+    color: #94a3b8 !important;
+    background-color: #1e293b !important;
+    border-radius: 0 !important;
+  }
+
+  /* CÁC LOẠI DATEPICKER KHÁC */
+  /* Ưu tiên cao nhất cho tất cả datepicker phổ biến */
+  .dark-mode div[class*="datepicker"],
+  .dark-mode div[class*="date-picker"],
+  .dark-mode div[class*="daterangepicker"],
+  .dark-mode div[class*="picker"],
+  .dark-mode div[class*="calendar"],
+  .dark-mode .ui-datepicker {
+    background-color: #1e293b !important; 
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+  }
+
+  .dark-mode div[class*="datepicker"] td, 
+  .dark-mode div[class*="datepicker"] th,
+  .dark-mode div[class*="date-picker"] td,
+  .dark-mode div[class*="date-picker"] th,
+  .dark-mode div[class*="daterangepicker"] td,
+  .dark-mode div[class*="daterangepicker"] th,
+  .dark-mode div[class*="picker"] td,
+  .dark-mode div[class*="picker"] th,
+  .dark-mode div[class*="calendar"] td,
+  .dark-mode div[class*="calendar"] th,
+  .dark-mode .ui-datepicker td,
+  .dark-mode .ui-datepicker th {
+    color: #f8fafc !important;
+  }
+
+  /* Cải thiện thông báo và các dialog trong dark mode */
+  .dark-mode .toast,
+  .dark-mode .alert,
+  .dark-mode .notification,
+  .dark-mode .alert-success,
+  .dark-mode .alert-danger,
+  .dark-mode .alert-warning,
+  .dark-mode .alert-info,
+  .dark-mode .alert-primary,
+  .dark-mode .swal2-popup,
+  .dark-mode .sweet-alert,
+  .dark-mode .toast-success,
+  .dark-mode .toast-error,
+  .dark-mode .toast-warning,
+  .dark-mode .toast-info {
+    background-color: #1e293b !important;
+    color: #f8fafc !important; /* Màu sáng, dễ đọc */
+    border-color: #334155 !important;
+  }
+
+  /* Đặc biệt cho các thông báo thành công/lỗi */
+  .dark-mode .alert-success,
+  .dark-mode .toast-success,
+  .dark-mode .swal2-success {
+    border-left: 4px solid #10b981 !important;
+    color: #4ade80 !important; /* Màu sáng, dễ đọc */
+  }
+
+  .dark-mode .alert-danger,
+  .dark-mode .toast-error,
+  .dark-mode .swal2-error {
+    border-left: 4px solid #ef4444 !important;
+    color: #f87171 !important; /* Màu sáng, dễ đọc */
+  }
+
+  .dark-mode .alert-warning,
+  .dark-mode .toast-warning,
+  .dark-mode .swal2-warning {
+    border-left: 4px solid #f59e0b !important;
+    color: #fbbf24 !important; /* Màu sáng, dễ đọc */
+  }
+
+  .dark-mode .alert-info,
+  .dark-mode .toast-info,
+  .dark-mode .swal2-info {
+    border-left: 4px solid #0ea5e9 !important;
+    color: #38bdf8 !important; /* Màu sáng, dễ đọc */
+  }
+
+  /* Đảm bảo text và icon trong thông báo đều có màu đúng */
+  .dark-mode .toast *,
+  .dark-mode .alert *,
+  .dark-mode .notification *,
+  .dark-mode .sweet-alert *,
+  .dark-mode .swal2-popup *,
+  .dark-mode .swal2-title,
+  .dark-mode .swal2-content,
+  .dark-mode .swal2-html-container {
+    color: #f8fafc !important; /* Màu sáng, dễ đọc */
+  }
+
+  /* CSS cho thông tin tổ chức */
+  .org-info {
+    line-height: 1.5;
+    padding: 12px 15px;
+    background-color: var(--white-color);
+    border-radius: var(--radius-md);
+    /* Đã bỏ border-left: 3px solid var(--primary-color); theo yêu cầu */
+    max-width: 800px;
+    font-size: 0.9rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 15px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .designer-info {
+    color: var(--dark-color);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s ease;
+  }
+
+  .designer-info i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin-right: 8px;
+  }
+
+  .time-info {
+    color: var(--secondary-color);
+    border-top: 1px dashed #dee2e6;
+    padding-top: 8px;
+    margin-top: 8px;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .time-info i {
+    color: var(--info-color);
+    margin-right: 8px;
+  }
+
+  .user-login-info {
+    color: var(--secondary-color);
+    margin-top: 8px;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s ease;
+  }
+
+  .user-login-info i {
+    color: var(--info-color);
+    margin-right: 8px;
+  }
+</style>
+
+/**
+ * ====================================================================
+ * 16. JAVASCRIPT INTERACTIONS
+ * ====================================================================
+ */
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Thiết lập thanh cuộn ngang ở trên cho bảng
+  function setupTopHorizontalScroll() {
+    // Tìm tất cả các bảng cần xử lý
+    const tableResponsives = document.querySelectorAll('.table-responsive');
+    if (!tableResponsives.length) return;
+    
+    tableResponsives.forEach(tableResponsive => {
+      // Tạo container mới
+      const tableContainer = document.createElement('div');
+      tableContainer.className = 'table-container';
+      
+      // Tạo container cho bảng có thể cuộn
+      const tableScrollableContainer = document.createElement('div');
+      tableScrollableContainer.className = 'table-scrollable-container';
+      
+      // Tạo thanh cuộn ngang ở trên
+      const scrollContainer = document.createElement('div');
+      scrollContainer.className = 'custom-scroll-container';
+      
+      // Tạo indicator cho thanh cuộn
+      const scrollIndicator = document.createElement('div');
+      scrollIndicator.className = 'scroll-indicator';
+      
+      scrollContainer.appendChild(scrollIndicator);
+      
+      // Di chuyển bảng vào container mới
+      const originalTable = tableResponsive.querySelector('table');
+      if (!originalTable) return;
+      
+      tableScrollableContainer.appendChild(originalTable);
+      
+      // Loại bỏ các vùng làm mờ gradient overlay
+      // (Đã loại bỏ code tạo leftFadeZone và rightFadeZone theo yêu cầu)
+      
+      // Lắp ráp cấu trúc mới và thêm các nút điều hướng (sẽ bị ẩn bởi CSS)
+      tableContainer.appendChild(scrollContainer);
+      tableContainer.appendChild(tableScrollableContainer);
+      
+      // Tạo các nút mũi tên điều hướng (sẽ bị ẩn bởi CSS)
+      const scrollLeftBtn = document.createElement("button");
+      scrollLeftBtn.id = "scrollLeftBtn";
+      scrollLeftBtn.className = "table-scroll-btn table-scroll-left";
+      scrollLeftBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+      tableContainer.appendChild(scrollLeftBtn);
+      
+      const scrollRightBtn = document.createElement("button");
+      scrollRightBtn.id = "scrollRightBtn";
+      scrollRightBtn.className = "table-scroll-btn table-scroll-right";
+      scrollRightBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+      tableContainer.appendChild(scrollRightBtn);
+      
+      // Thay thế container cũ bằng cấu trúc mới
+      tableResponsive.parentNode.replaceChild(tableContainer, tableResponsive);
+      
+      // Thiết lập thanh cuộn để tối ưu hiệu suất
+      let isScrolling = false;
+      let scrollingTimer;
+      let scrollAnimationId;
+      let lastScrollLeft = 0;
+      
+      // Hàm cập nhật indicator chỉ khi cần thiết
+      function updateScrollIndicator() {
+        if (!isScrolling) return;
+        
+        const containerWidth = tableScrollableContainer.clientWidth;
+        const scrollWidth = tableScrollableContainer.scrollWidth;
+        
+        if (scrollWidth <= containerWidth) {
+          scrollIndicator.style.display = 'none';
+          return;
+        }
+        
+        scrollIndicator.style.display = 'block';
+        
+        // Tính toán chiều rộng cho indicator
+        const ratio = containerWidth / scrollWidth;
+        const indicatorWidth = Math.max(30, Math.floor(containerWidth * ratio));
+        scrollIndicator.style.width = `${indicatorWidth}px`;
+        
+        // Tính vị trí indicator
+        const scrollLeft = tableScrollableContainer.scrollLeft;
+        const maxScroll = scrollWidth - containerWidth;
+        const maxPosition = containerWidth - indicatorWidth;
+        const position = (scrollLeft / maxScroll) * maxPosition;
+        
+        // Cập nhật vị trí indicator
+        scrollIndicator.style.left = `${position}px`;
+        
+        lastScrollLeft = scrollLeft;
+        
+        // Lặp lại tiếp theo nếu vẫn đang cuộn
+        if (isScrolling) {
+          scrollAnimationId = requestAnimationFrame(updateScrollIndicator);
+        }
+      }
+      
+      // Xử lý sự kiện scroll với tối ưu hiệu suất
+      tableScrollableContainer.addEventListener('scroll', function() {
+        if (!isScrolling) {
+          isScrolling = true;
+          tableScrollableContainer.classList.add('is-scrolling');
+          scrollAnimationId = requestAnimationFrame(updateScrollIndicator);
+        }
+        
+        clearTimeout(scrollingTimer);
+        scrollingTimer = setTimeout(() => {
+          isScrolling = false;
+          cancelAnimationFrame(scrollAnimationId);
+          tableScrollableContainer.classList.remove('is-scrolling');
+        }, 100);
+      }, { passive: true }); // passive để tăng hiệu suất
+
+      // Xử lý kéo indicator với hiệu suất cao
+      let isDragging = false;
+      let startX = 0;
+      let startLeft = 0;
+      
+      scrollIndicator.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        startX = e.clientX;
+        startLeft = parseInt(scrollIndicator.style.left) || 0;
+        document.body.style.userSelect = 'none';
+        
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        e.preventDefault();
+      });
+      
+      function handleMouseMove(e) {
+        if (!isDragging) return;
+        
+        // Tối ưu bằng requestAnimationFrame
+        requestAnimationFrame(() => {
+          const containerWidth = tableScrollableContainer.clientWidth;
+          const scrollWidth = tableScrollableContainer.scrollWidth;
+          const indicatorWidth = parseInt(scrollIndicator.style.width);
+          const maxPosition = containerWidth - indicatorWidth;
+          
+          let newLeft = startLeft + (e.clientX - startX);
+          newLeft = Math.max(0, Math.min(newLeft, maxPosition));
+          
+          scrollIndicator.style.left = `${newLeft}px`;
+          
+          const scrollRatio = newLeft / maxPosition;
+          const newScrollLeft = scrollRatio * (scrollWidth - containerWidth);
+          
+          tableScrollableContainer.scrollLeft = newScrollLeft;
+        });
+      }
+      
+      function handleMouseUp() {
+        isDragging = false;
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      }
+      
+      // Cuộn khi click vào thanh cuộn
+      scrollContainer.addEventListener('click', function(e) {
+        if (e.target === scrollIndicator) return;
+        
+        const containerWidth = tableScrollableContainer.clientWidth;
+        const scrollWidth = tableScrollableContainer.scrollWidth;
+        const indicatorWidth = parseInt(scrollIndicator.style.width || '30');
+        
+        const rect = scrollContainer.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        
+        const newLeft = clickX - (indicatorWidth / 2);
+        const maxPosition = containerWidth - indicatorWidth;
+        const adjustedLeft = Math.max(0, Math.min(newLeft, maxPosition));
+        
+        const scrollRatio = adjustedLeft / maxPosition;
+        const newScrollLeft = scrollRatio * (scrollWidth - containerWidth);
+        
+        // Cuộn mượt mà với hiệu suất tốt
+        scrollToHorizontalPosition(tableScrollableContainer, newScrollLeft, 300);
+      });
+      
+      // Hàm cuộn mượt mà với hiệu suất được tối ưu
+      function scrollToHorizontalPosition(element, to, duration) {
+        const start = element.scrollLeft;
+        const change = to - start;
+        const startTime = performance.now();
+        
+        function animateScroll(currentTime) {
+          const elapsedTime = currentTime - startTime;
+          
+          if (elapsedTime >= duration) {
+            element.scrollLeft = to;
+            return;
+          }
+          
+          const progress = elapsedTime / duration;
+          const easeInOutCubic = progress < 0.5 
+            ? 4 * progress * progress * progress 
+            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+            
+          element.scrollLeft = start + change * easeInOutCubic;
+          requestAnimationFrame(animateScroll);
+        }
+        
+        requestAnimationFrame(animateScroll);
+      }
+      
+      // Khởi tạo kích thước ban đầu
+      setTimeout(() => {
+        isScrolling = true;
+        updateScrollIndicator();
+        isScrolling = false;
+      }, 100);
+      
+      // Cập nhật khi thay đổi kích thước
+      let resizeDebounce;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeDebounce);
+        resizeDebounce = setTimeout(() => {
+          isScrolling = true;
+          updateScrollIndicator();
+          isScrolling = false;
+        }, 200);
+      });
+    });
+  }
+  
+  // Thực thi thiết lập khi trang đã tải
+  setupTopHorizontalScroll();
+  
+  // Theo dõi các thay đổi trong DOM
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+        for (let i = 0; i < mutation.addedNodes.length; i++) {
+          const node = mutation.addedNodes[i];
+          if (node.classList && node.classList.contains('table-responsive')) {
+            setupTopHorizontalScroll();
+          } else if (node.querySelectorAll) {
+            const tableResponsives = node.querySelectorAll('.table-responsive');
+            if (tableResponsives.length > 0) setupTopHorizontalScroll();
+          }
+        }
+      }
+    });
+  });
+  
+  observer.observe(document.body, { childList: true, subtree: true });
+  
+  // Hiệu ứng highlight khi chọn hàng
+  function setupRowHighlighting() {
+    document.querySelectorAll('.table tbody tr').forEach(row => {
+      row.addEventListener('click', function() {
+        document.querySelectorAll('.table tbody tr').forEach(r => {
+          r.classList.remove('highlight');
+          r.classList.remove('highlight-animate');
+        });
+        
+        this.classList.add('highlight');
+        this.classList.add('highlight-animate');
+        
+        // Tự động cuộn đến hàng được chọn nếu nằm ngoài vùng nhìn
+        const tableContainer = this.closest('.table-scrollable-container');
+        if (tableContainer) {
+          const rowRect = this.getBoundingClientRect();
+          const containerRect = tableContainer.getBoundingClientRect();
+          
+          if (rowRect.top < containerRect.top || rowRect.bottom > containerRect.bottom) {
+            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      });
+    });
+  }
+
+  // Khởi tạo highlighting cho rows
+  setupRowHighlighting();
+  
+  // Tooltips khởi tạo
+  document.querySelectorAll('[data-tooltip]').forEach(element => {
+    const tooltipText = element.getAttribute('data-tooltip');
+    if (tooltipText) {
+      element.setAttribute('aria-label', tooltipText);
+    }
+  });
+  
+  // Đánh dấu số thứ tự
+  document.querySelectorAll('.table tbody tr').forEach((row, index) => {
+    const indexCell = row.querySelector('td:first-child');
+    if (indexCell) {
+      indexCell.innerHTML = `<span class="row-index">${index + 1}</span>`;
+    }
+  });
+  
+  // Xử lý phân trang
+  const setupPagination = () => {
+    const paginationLinks = document.querySelectorAll('.pagination .page-link');
+    
+    paginationLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Đánh dấu trang hiện tại
+        paginationLinks.forEach(l => l.parentNode.classList.remove('active'));
+        this.parentNode.classList.add('active');
+        
+        // Thêm hiệu ứng loading khi chuyển trang
+        const tableBody = document.querySelector('.table tbody');
+        if (tableBody) {
+          tableBody.style.opacity = '0.5';
+          setTimeout(() => {
+            tableBody.style.opacity = '1';
+          }, 300);
+        }
+      });
+    });
+  };
+  
+  // Thiết lập phân trang
+  setupPagination();
+  
+  // Thêm nút trở về đầu trang
+  const addBackToTopButton = () => {
+    const button = document.createElement('div');
+    button.className = 'back-to-top';
+    button.innerHTML = '<i class="bi bi-arrow-up"></i>';
+    button.setAttribute('aria-label', 'Trở về đầu trang');
+    document.body.appendChild(button);
+    
+    // Xử lý hiển thị khi cuộn
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        button.classList.add('visible');
+      } else {
+        button.classList.remove('visible');
+      }
+    });
+    
+    // Xử lý sự kiện click
+    button.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  };
+  
+  // Thêm nút chuyển đổi chế độ tối/sáng
+  const addThemeToggle = () => {
+    const button = document.createElement('div');
+    button.className = 'theme-toggle';
+    button.innerHTML = '<i class="bi bi-moon-stars"></i>';
+    button.setAttribute('aria-label', 'Chuyển đổi chế độ tối/sáng');
+    document.body.appendChild(button);
+    
+    // Xử lý sự kiện click
+    button.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      button.innerHTML = isDarkMode ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
+      
+      // Lưu trạng thái vào localStorage
+      localStorage.setItem('darkMode', isDarkMode);
+
+      // Áp dụng style phù hợp dựa trên chế độ hiện tại
+      if (isDarkMode) {
+        setTimeout(() => {
+          fixDatePickerInDarkMode();
+          fixDropdownsInDarkMode();
+        }, 100);
+      } else {
+        setTimeout(() => {
+          fixDropdownsInLightMode();
+        }, 100);
+      }
+    });
+    
+    // Kiểm tra trạng thái đã lưu
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (savedDarkMode) {
+      document.body.classList.add('dark-mode');
+      button.innerHTML = '<i class="bi bi-sun"></i>';
+      
+      // Fix cho dark mode
+      setTimeout(() => {
+        fixDatePickerInDarkMode();
+        fixDropdownsInDarkMode();
+      }, 100);
+    } else {
+      // Fix cho light mode
+      setTimeout(() => {
+        fixDropdownsInLightMode();
+      }, 100);
+    }
+  };
+  
+  // Thêm chức năng sắp xếp cột
+  const setupSortableColumns = () => {
+    const sortableHeaders = document.querySelectorAll('.table th.sortable-header');
+    
+    sortableHeaders.forEach(header => {
+      header.addEventListener('click', function() {
+        // Xóa các class sắp xếp khác
+        sortableHeaders.forEach(h => {
+          if (h !== header) {
+            h.classList.remove('sort-asc', 'sort-desc');
+          }
+        });
+        
+        // Chuyển đổi hướng sắp xếp
+        if (this.classList.contains('sort-asc')) {
+          this.classList.remove('sort-asc');
+          this.classList.add('sort-desc');
+        } else if (this.classList.contains('sort-desc')) {
+          this.classList.remove('sort-desc');
+        } else {
+          this.classList.add('sort-asc');
+        }
+        
+        // Thêm hiệu ứng loading khi sắp xếp
+        const tableBody = document.querySelector('.table tbody');
+        if (tableBody) {
+          tableBody.classList.add('is-loading');
+          setTimeout(() => {
+            tableBody.classList.remove('is-loading');
+          }, 500);
+        }
+      });
+    });
+  };
+  
+  // Thiết lập các tính năng tương tác
+  addBackToTopButton();
+  addThemeToggle();
+  setupSortableColumns();
+  
+  // Xử lý sự kiện nhấn phím để điều hướng bảng
+  const setupKeyboardNavigation = () => {
+    document.addEventListener('keydown', function(e) {
+      const tableContainer = document.querySelector('.table-scrollable-container');
+      if (!tableContainer) return;
+      
+      // Arrow Left/Right để cuộn ngang
+      if (e.key === 'ArrowLeft') {
+        tableContainer.scrollBy({ left: -50, behavior: 'smooth' });
+      } else if (e.key === 'ArrowRight') {
+        tableContainer.scrollBy({ left: 50, behavior: 'smooth' });
+      }
+      
+      // Tab để di chuyển đến cột tiếp theo
+      if (e.key === 'Tab' && document.activeElement.tagName === 'TD') {
+        const currentCell = document.activeElement;
+        const currentRow = currentCell.parentElement;
+        const nextCell = e.shiftKey ? currentCell.previousElementSibling : currentCell.nextElementSibling;
+        
+        if (nextCell) {
+          e.preventDefault();
+          nextCell.focus();
+          
+          // Đảm bảo cuộn để cell được chọn luôn hiển thị
+          const cellRect = nextCell.getBoundingClientRect();
+          const containerRect = tableContainer.getBoundingClientRect();
+          
+          if (cellRect.right > containerRect.right) {
+            tableContainer.scrollBy({ left: cellRect.right - containerRect.right + 20, behavior: 'smooth' });
+          } else if (cellRect.left < containerRect.left) {
+            tableContainer.scrollBy({ left: cellRect.left - containerRect.left - 20, behavior: 'smooth' });
+          }
+        }
+      }
+    });
+  };
+  
+  // Thiết lập điều hướng bàn phím
+  setupKeyboardNavigation();
+  
+  // Thêm chức năng in ấn
+  const setupPrintFunctionality = () => {
+    const printButton = document.getElementById('printButton');
+    if (!printButton) return;
+    
+    printButton.addEventListener('click', function() {
+      // Tạo thông báo đang chuẩn bị
+      const originalContent = document.body.innerHTML;
+      const printingMessage = document.createElement('div');
+      printingMessage.className = 'print-preparing fade-in';
+      printingMessage.innerHTML = '<i class="bi bi-printer"></i> Đang chuẩn bị trang in...';
+      document.body.appendChild(printingMessage);
+      
+      setTimeout(() => {
+        // Xóa thông báo
+        printingMessage.remove();
+        
+        // Chuẩn bị trang in
+        const printContent = preparePrintContent();
+        
+        // Lưu lại nội dung gốc và thay thế bằng nội dung để in
+        document.body.innerHTML = printContent;
+        
+        // Thực hiện in
+        window.print();
+        
+        // Khôi phục lại nội dung sau khi in
+        document.body.innerHTML = originalContent;
+        
+        // Khởi tạo lại các chức năng JavaScript
+        reInitializeScripts();
+      }, 500);
+    });
+    
+    // Hàm chuẩn bị nội dung in
+    function preparePrintContent() {
+      // Lấy bảng dữ liệu
+      const table = document.querySelector('.table').cloneNode(true);
+      
+      // Loại bỏ cột "Thao tác" (cột cuối cùng)
+      const headerRow = table.querySelector('thead tr');
+      const lastHeaderCell = headerRow.lastElementChild;
+      if (lastHeaderCell && lastHeaderCell.textContent.trim() === 'Thao tác') {
+        headerRow.removeChild(lastHeaderCell);
+      }
+      
+      // Loại bỏ cột "Thao tác" khỏi tất cả các hàng dữ liệu
+      const dataRows = table.querySelectorAll('tbody tr');
+      dataRows.forEach(row => {
+        const lastCell = row.lastElementChild;
+        if (lastCell) {
+          row.removeChild(lastCell);
+        }
+      });
+      
+      // Cập nhật thuộc tính colspan nếu có hàng đang hiển thị loading/thông báo
+      const messageRows = table.querySelectorAll('tbody tr td[colspan]');
+      messageRows.forEach(cell => {
+        const currentColspan = parseInt(cell.getAttribute('colspan'), 10);
+        if (!isNaN(currentColspan)) {
+          cell.setAttribute('colspan', (currentColspan - 1).toString());
+        }
+      });
+      
+      // Lấy tiêu đề trang/báo cáo
+      const reportTitle = document.querySelector('.card-header') ? 
+        document.querySelector('.card-header').textContent.trim() : 
+        'Báo cáo dữ liệu';
+      
+      // Tạo ngày giờ in
+      const now = new Date();
+      const dateTimeString = now.toLocaleString('vi-VN');
+      
+      // Tạo template cho trang in với CSS inline
+      return `
+        <div class="print-container" style="padding: 20px; font-family: 'Inter', Arial, sans-serif;">
+          <div class="print-header" style="margin-bottom: 20px; text-align: center;">
+            <h1 style="font-size: 24px; margin-bottom: 5px;">${reportTitle}</h1>
+            <p style="font-size: 14px; color: #666;">In ngày: ${dateTimeString}</p>
+          </div>
+          
+          <div class="print-table" style="overflow-x: auto;">
+            ${table.outerHTML}
+          </div>
+          
+          <div class="print-footer" style="margin-top: 30px; font-size: 12px; text-align: center; color: #666;">
+            <p>© ${now.getFullYear()} - In bởi: ${document.querySelector('.user-info') ? document.querySelector('.user-info').textContent.trim() : 'Người dùng hệ thống'}</p>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Khởi tạo lại các script sau khi in
+    function reInitializeScripts() {
+      // Khởi tạo lại các chức năng cần thiết
+      setupTopHorizontalScroll();
+      setupSortableColumns();
+      setupPagination();
+      setupPrintFunctionality();
+      fixDarkModeModalsNew();
+      fixDatePickerInDarkMode();
+      fixDropdownsInLightMode();
+      
+      // Lắng nghe sự kiện click trên các hàng bảng
+      document.querySelectorAll('.table tbody tr').forEach(row => {
+        row.addEventListener('click', function() {
+          document.querySelectorAll('.table tbody tr').forEach(r => {
+            r.classList.remove('highlight');
+            r.classList.remove('highlight-animate');
+          });
+          
+          this.classList.add('highlight');
+          this.classList.add('highlight-animate');
+        });
+      });
+    }
+  };
+
+  // Thực thi chức năng in ấn
+  setupPrintFunctionality();
+  
+  // Cập nhật hiển thị thông tin designer và thời gian
+  const setupDesignerInfo = () => {
+    const userInfoDiv = document.getElementById('userInfo');
+    if (userInfoDiv) {
+      userInfoDiv.innerHTML = `
+        <div class="org-info">
+          <div class="designer-info">
+            <i class="bi bi-person-workspace"></i> Lê Tiến Quân &nbsp;&nbsp;|&nbsp;&nbsp; 
+            <i class="bi bi-envelope"></i> giangchaugc@gmail.com
+          </div>
+          <div class="time-info">
+            <i class="bi bi-clock"></i> <span id="currentTime">2025-03-15 11:28:54</span>
+          </div>
+          <div class="user-login-info">
+            <i class="bi bi-person"></i> Đăng nhập: duongchaulc
+          </div>
+        </div>
+      `;
+      
+      // Cập nhật thời gian ngay lập tức và thiết lập cập nhật định kỳ
+      updateCurrentTime();
+      setInterval(updateCurrentTime, 1000);
+    }
+  };
+  
+  // Cập nhật hiển thị thời gian hiện tại
+  function updateCurrentTime() {
+    const timeElement = document.getElementById('currentTime');
+    if (!timeElement) return;
+    
+    // Lấy thời gian hiện tại theo múi giờ Việt Nam (UTC+7)
+    const now = new Date();
+    const options = { 
+      timeZone: 'Asia/Ho_Chi_Minh',
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    };
+
+    try {
+      const formattedTime = new Intl.DateTimeFormat('vi-VN', options).format(now);
+      timeElement.textContent = formattedTime;
+    } catch (error) {
+      // Fallback nếu định dạng không được hỗ trợ
+      const vietnamTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+      timeElement.textContent = vietnamTime.toLocaleString('vi-VN');
+    }
+  }
+  
+  // Thực thi thiết lập thông tin designer và thời gian
+  setupDesignerInfo();
+
+  // Giải pháp mới để sửa modal trong dark mode
+  const fixDarkModeModalsNew = () => {
+    // Tạo một style tag riêng để xử lý modal
+    const styleTag = document.createElement('style');
+    document.head.appendChild(styleTag);
+    
+    // Xóa lớp phủ nếu tồn tại
+    const removeBlockingOverlay = () => {
+      const overlays = document.querySelectorAll('.dark-mode-overlay');
+      overlays.forEach(overlay => overlay.remove());
+    };
+    
+    // Xử lý khi bật/tắt dark mode
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        if (mutation.attributeName === 'class' && 
+            (document.body.classList.contains('dark-mode') || mutation.oldValue?.includes('dark-mode'))) {
+          
+          if (document.body.classList.contains('dark-mode')) {
+            // Khi bật dark mode
+            styleTag.textContent = `
+              /* Modal backdrop phải ở dưới modal */
+              .dark-mode .modal-backdrop,
+              .dark-mode .modal-backdrop.show,
+              .dark-mode .modal-backdrop.fade.show {
+                z-index: 1040 !important;
+                opacity: 0.8 !important;
+                pointer-events: auto !important;
+              }
+              
+              /* Modal phải nằm trên backdrop */
+              .dark-mode .modal,
+              .dark-mode .modal.show,
+              .dark-mode .modal.fade.show {
+                z-index: 1050 !important;
+                background-color: transparent !important;
+                pointer-events: auto !important;
+              }
+              
+              /* Đảm bảo modal dialog có z-index cao và có thể tương tác */
+              .dark-mode .modal-dialog {
+                z-index: 1051 !important;
+                pointer-events: auto !important;
+                position: relative !important;
+              }
+              
+              /* Đảm bảo modal content có thể tương tác */
+              .dark-mode .modal-content {
+                position: relative !important;
+                z-index: 1052 !important;
+                pointer-events: all !important;
+                background-color: #1e293b !important;
+                color: #e2e8f0 !important;
+              }
+              
+              /* Đảm bảo form inputs có thể tương tác */
+              .dark-mode .modal-content * {
+                pointer-events: auto !important;
+              }
+
+              /* Thêm chặn backdrop lớp thứ 2 tránh ngăn chặn tương tác */
+              .modal-backdrop + .modal-backdrop {
+                display: none !important;
+              }
+              
+              /* Fix các control phổ biến trong modal */
+              .dark-mode .modal .form-control,
+              .dark-mode .modal .form-select,
+              .dark-mode .modal input,
+              .dark-mode .modal select,
+              .dark-mode .modal textarea {
+                background-color: #0f172a !important;
+                color: #f1f5f9 !important;
+                border-color: #475569 !important;
+              }
+
+              /* Fix màu chữ cho các thông báo SweetAlert2, Toast, etc trong dark mode */
+              .dark-mode .swal2-popup,
+              .dark-mode .swal2-container,
+              .dark-mode .swal2-modal,
+              .dark-mode .toast,
+              .dark-mode .toast-container,
+              .dark-mode .alert {
+                background-color: #1e293b !important;
+                color: #f8fafc !important;
+              }
+
+              .dark-mode .swal2-title,
+              .dark-mode .swal2-content,
+              .dark-mode .swal2-html-container,
+              .dark-mode .swal2-confirm,
+              .dark-mode .swal2-cancel,
+              .dark-mode .toast-header,
+              .dark-mode .toast-body,
+              .dark-mode .alert-heading,
+              .dark-mode .alert-content {
+                color: #f8fafc !important;
+              }
+              
+              /* Fix màu nền cho option khi select dropdown trong dark mode */
+              .dark-mode select option,
+              .dark-mode .form-select option {
+                background-color: #1e293b !important;
+                color: #f8fafc !important;
+              }
+            `;
+            
+            // Xóa overlay cũ nếu tồn tại
+            removeBlockingOverlay();
+
+            // Khôi phục kích thước modal ban đầu
+            setTimeout(() => {
+              document.querySelectorAll('.modal-dialog').forEach(dialog => {
+                if (dialog.classList.contains('modal-sm')) {
+                  dialog.style.width = '300px';
+                  dialog.style.maxWidth = '300px';
+                } else if (dialog.classList.contains('modal-lg')) {
+                  dialog.style.width = '800px';
+                  dialog.style.maxWidth = '800px';
+                } else if (dialog.classList.contains('modal-xl')) {
+                  dialog.style.width = '1140px';
+                  dialog.style.maxWidth = '1140px';
+                } else {
+                  dialog.style.width = '500px';
+                  dialog.style.maxWidth = '500px';
+                }
+              });
+            }, 0);
+          } else {
+            // Khi tắt dark mode
+            styleTag.textContent = '';
+            removeBlockingOverlay();
+          }
+
+          // Đặc biệt: sửa lỗi datepicker trong Dark Mode
+          fixDatePickerInDarkMode();
+          // Sửa lỗi dropdown menu trong Dark Mode
+          fixDropdownsInDarkMode();
+        }
+      });
+    });
+    
+    // Theo dõi thay đổi class trên body
+    observer.observe(document.body, { 
+      attributes: true, 
+      attributeFilter: ['class'], 
+      attributeOldValue: true 
+    });
+    
+    // Fix màu chữ trong thông báo ở dark mode
+    document.addEventListener('DOMNodeInserted', function(e) {
+      if (document.body.classList.contains('dark-mode')) {
+        // Kiểm tra nếu có thông báo SweetAlert2 hoặc Toast được thêm vào
+        if (e.target.classList && 
+           (e.target.classList.contains('swal2-popup') || 
+            e.target.classList.contains('toast') || 
+            e.target.classList.contains('alert'))) {
+          // Set màu chữ cho tất cả phần tử trong thông báo
+          const textElements = e.target.querySelectorAll('*');
+          textElements.forEach(el => {
+            if (el.tagName !== 'BUTTON') {
+              el.style.color = '#f8fafc';
+            }
+          });
+        }
+
+        // Kiểm tra thêm trường hợp container của SweetAlert2
+        if (e.target.classList && e.target.classList.contains('swal2-container')) {
+          setTimeout(() => {
+            const popupContent = e.target.querySelector('.swal2-html-container');
+            const popupTitle = e.target.querySelector('.swal2-title');
+            
+            if (popupContent) popupContent.style.color = '#f8fafc';
+            if (popupTitle) popupTitle.style.color = '#f8fafc';
+          }, 0);
+        }
+
+        // Kiểm tra và xử lý các datepicker
+        const datepickerElements = document.querySelectorAll('.datepicker, .datepicker-dropdown, [class*="datepicker"], .calendar-dropdown, .ui-datepicker, .flatpickr-calendar');
+        if (datepickerElements.length > 0) {
+          fixDatePickerInDarkMode();
+        }
+
+        // Kiểm tra và xử lý các dropdown
+        const dropdownElements = document.querySelectorAll('.dropdown-menu, select, .form-select');
+        if (dropdownElements.length > 0) {
+          fixDropdownsInDarkMode();
+        }
+      }
+    });
+    
+    // Theo dõi khi có modal được mở
+    document.addEventListener('show.bs.modal', function(e) {
+      if (document.body.classList.contains('dark-mode')) {
+        const modalElem = e.target;
+        
+        // Đảm bảo modal hiển thị đúng
+        setTimeout(() => {
+          modalElem.style.zIndex = '1050';
+          modalElem.style.pointerEvents = 'auto';
+          
+          // Reset các style quan trọng
+          const modalDialog = modalElem.querySelector('.modal-dialog');
+          if (modalDialog) {
+            modalDialog.style.pointerEvents = 'auto';
+            modalDialog.style.zIndex = '1051';
+            modalDialog.style.position = 'relative';
+            
+            // Đặt kích thước đúng cho modal dialog
+            if (modalDialog.classList.contains('modal-sm')) {
+              modalDialog.style.width = '300px';
+              modalDialog.style.maxWidth = '300px';
+            } else if (modalDialog.classList.contains('modal-lg')) {
+              modalDialog.style.width = '800px';
+              modalDialog.style.maxWidth = '800px';
+            } else if (modalDialog.classList.contains('modal-xl')) {
+              modalDialog.style.width = '1140px';
+              modalDialog.style.maxWidth = '1140px';
+            } else {
+              modalDialog.style.width = '500px';
+              modalDialog.style.maxWidth = '500px';
+            }
+          }
+          
+          const modalContent = modalElem.querySelector('.modal-content');
+          if (modalContent) {
+            modalContent.style.pointerEvents = 'auto';
+            modalContent.style.zIndex = '1052';
+            modalContent.style.position = 'relative';
+            modalContent.style.backgroundColor = '#1e293b';
+            modalContent.style.color = '#e2e8f0';
+            modalContent.style.width = '100%';
+          }
+          
+          // Đảm bảo backdrop nằm dưới
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) {
+            backdrop.style.zIndex = '1040';
+          }
+
+          // Đảm bảo tất cả các form control trong modal hoạt động đúng
+          const formControls = modalElem.querySelectorAll('input, select, textarea, button, .form-control, .form-select');
+          formControls.forEach(control => {
+            control.style.pointerEvents = 'auto';
+            if (control.tagName !== 'BUTTON' && !control.classList.contains('btn')) {
+              control.style.backgroundColor = '#0f172a';
+              control.style.color = '#f1f5f9';
+              control.style.borderColor = '#475569';
+            }
+          });
+
+          // Kiểm tra có datepicker trong modal không
+          const dateInputs = modalElem.querySelectorAll('input[type="date"], [data-provide="datepicker"], .datepicker');
+          if (dateInputs.length > 0) {
+            setTimeout(fixDatePickerInDarkMode, 100);
+          }
+
+          // Kiểm tra có dropdown/select trong modal không
+          const selectInputs = modalElem.querySelectorAll('select, .form-select');
+          if (selectInputs.length > 0) {
+            setTimeout(fixDropdownsInDarkMode, 100);
+          }
+        }, 10);
+      }
+    });
+
+    // Xử lý sự kiện modal đóng để đảm bảo không có overlay nào còn sót lại
+    document.addEventListener('hidden.bs.modal', function() {
+      removeBlockingOverlay();
+    });
+  };
+  
+  // Hàm sửa lỗi DatePicker trong Dark Mode
+  function fixDatePickerInDarkMode() {
+    if (!document.body.classList.contains('dark-mode')) return;
+
+    // DatePicker có thể xuất hiện động sau khi focus vào input
+    // Nên cần một observer theo dõi khi datepicker được thêm vào DOM
+    const datepickerObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+          for (let i = 0; i < mutation.addedNodes.length; i++) {
+            const node = mutation.addedNodes[i];
+            // Kiểm tra nếu node là datepicker hoặc chứa datepicker
+            if (node.nodeType === 1 && (
+                node.classList && (
+                  node.classList.contains('datepicker') || 
+                  node.classList.contains('datepicker-dropdown') ||
+                  node.classList.contains('ui-datepicker') ||
+                  node.classList.contains('flatpickr-calendar') ||
+                  node.classList.contains('daterangepicker') ||
+                  node.classList.contains('bootstrap-datepicker')
+                ) ||
+                (node.querySelectorAll && node.querySelectorAll('[class*="datepicker"], .ui-datepicker, .flatpickr-calendar').length > 0)
+              )) {
+              // Fix màu chữ và số cho datepicker
+              applyDatepickerStyles(node);
+            }
+          }
+        }
+      });
+    });
+
+    // Bắt đầu theo dõi toàn bộ DOM để phát hiện datepicker xuất hiện
+    datepickerObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    // Xử lý các datepicker đã có sẵn
+    const existingDatepickers = document.querySelectorAll('.datepicker, .datepicker-dropdown, .ui-datepicker, .flatpickr-calendar, .daterangepicker, [class*="datepicker"]');
+    existingDatepickers.forEach(datepicker => {
+      applyDatepickerStyles(datepicker);
+    });
+
+    // Chờ một chút và kiểm tra lại vì datepicker có thể xuất hiện muộn
+    setTimeout(() => {
+      const delayedDatepickers = document.querySelectorAll('.datepicker, .datepicker-dropdown, .ui-datepicker, .flatpickr-calendar, .daterangepicker, [class*="datepicker"]');
+      delayedDatepickers.forEach(datepicker => {
+        applyDatepickerStyles(datepicker);
+      });
+    }, 200);
+
+    // Xử lý sự kiện focus vào input date (có thể trigger datepicker)
+    document.querySelectorAll('input[type="date"], [data-provide="datepicker"], .datepicker').forEach(input => {
+      input.addEventListener('focus', () => {
+        setTimeout(() => {
+          const focusDatepickers = document.querySelectorAll('.datepicker, .datepicker-dropdown, .ui-datepicker, .flatpickr-calendar, .daterangepicker, [class*="datepicker"]');
+          focusDatepickers.forEach(datepicker => {
+            applyDatepickerStyles(datepicker);
+          });
+        }, 100);
+      });
+    });
+  }
+
+  // Hàm áp dụng style cho datepicker
+  function applyDatepickerStyles(datepicker) {
+    if (!document.body.classList.contains('dark-mode')) return;
+
+    // Đặt màu nền dark mode cho datepicker
+    datepicker.style.backgroundColor = '#1e293b';
+    datepicker.style.color = '#f8fafc';
+    datepicker.style.borderColor = '#475569';
+
+    // Xử lý tất cả các phần tử con
+    const allElements = datepicker.querySelectorAll('*');
+    allElements.forEach(el => {
+      // Màu nền cho các phần tử chứa
+      if (el.tagName === 'DIV' || el.tagName === 'SPAN' || el.tagName === 'TABLE') {
+        el.style.backgroundColor = '#1e293b';
+        el.style.color = '#f8fafc';
+      }
+
+      // Xử lý đặc biệt cho các ngày trong tháng
+      if (el.tagName === 'TD' || el.tagName === 'TH') {
+        el.style.color = '#f8fafc';
+      }
+
+      // Xử lý các nút trong datepicker
+      if (el.tagName === 'BUTTON' || 
+          (el.tagName === 'SPAN' && (el.classList.contains('prev') || el.classList.contains('next')))) {
+        el.style.color = '#f8fafc';
+      }
+
+      // Đảm bảo ngày đang chọn có màu nổi bật
+      if (el.classList.contains('active') || 
+          el.classList.contains('selected') || 
+          el.classList.contains('day') && el.classList.contains('active')) {
+        el.style.backgroundColor = '#3b82f6';
+        el.style.color = 'white';
+      }
+    });
+
+    // Xử lý đặc biệt cho header của datepicker
+    const header = datepicker.querySelector('.datepicker-switch, .ui-datepicker-title');
+    if (header) {
+      header.style.color = '#f8fafc';
+    }
+
+    // Đảm bảo ngày hiện tại nổi bật
+    const today = datepicker.querySelector('.today');
+    if (today) {
+      today.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
+      today.style.color = '#f8fafc';
+    }
+  }
+
+  // Hàm sửa lỗi dropdown/select trong Dark Mode
+  function fixDropdownsInDarkMode() {
+    if (!document.body.classList.contains('dark-mode')) return;
+
+    // Theo dõi DOM cho dropdown mới được thêm vào
+    const dropdownObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+          for (let i = 0; i < mutation.addedNodes.length; i++) {
+            const node = mutation.addedNodes[i];
+            // Kiểm tra nếu node là dropdown hoặc chứa dropdown
+            if (node.nodeType === 1 && (
+                node.classList && (
+                  node.classList.contains('dropdown-menu') || 
+                  node.tagName === 'SELECT' || 
+                  node.classList.contains('form-select') ||
+                  node.classList.contains('select2-dropdown') || 
+                  node.classList.contains('multiselect-container')
+                ) ||
+                (node.querySelectorAll && node.querySelectorAll('.dropdown-menu, select, .form-select, .select2-dropdown').length > 0)
+              )) {
+              // Fix màu cho dropdown
+              applyDropdownStyles(node);
+            }
+          }
+        }
+      });
+    });
+
+    // Bắt đầu theo dõi DOM
+    dropdownObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    // Fix dropdown đã có sẵn
+    const existingDropdowns = document.querySelectorAll('.dropdown-menu, select, .form-select, .select2-dropdown, .multiselect-container');
+    existingDropdowns.forEach(dropdown => {
+      applyDropdownStyles(dropdown);
+    });
+
+    // Xử lý cụ thể cho các thẻ select và option
+    document.querySelectorAll('select, .form-select').forEach(select => {
+      // Fix select element
+      select.style.backgroundColor = '#0f172a';
+      select.style.color = '#f8fafc';
+      select.style.borderColor = '#475569';
+
+      // Fix các option trong select
+      const options = select.querySelectorAll('option');
+      options.forEach(option => {
+        option.style.backgroundColor = '#1e293b';
+        option.style.color = '#f8fafc';
+      });
+
+      // Thêm sự kiện focus để đảm bảo dropdown menu hiển thị đúng
+      select.addEventListener('focus', () => {
+        setTimeout(() => {
+          const visibleDropdowns = document.querySelectorAll('.dropdown-menu:visible, .select2-dropdown:visible, .multiselect-container:visible');
+          visibleDropdowns.forEach(dropdown => {
+            applyDropdownStyles(dropdown);
+          });
+        }, 100);
+      });
+
+      // Thêm sự kiện change để đảm bảo option được chọn hiển thị đúng
+      select.addEventListener('change', () => {
+        setTimeout(() => {
+          const selectedOption = select.options[select.selectedIndex];
+          if (selectedOption) {
+            selectedOption.style.backgroundColor = '#3b82f6';
+            selectedOption.style.color = 'white';
+          }
+        }, 0);
+      });
+    });
+
+    // Thêm sự kiện click để bắt dropdown khi mở ra
+    document.addEventListener('click', () => {
+      setTimeout(() => {
+        const visibleDropdowns = document.querySelectorAll('.dropdown-menu:visible, .select2-dropdown:visible, .multiselect-container:visible');
+        visibleDropdowns.forEach(dropdown => {
+          applyDropdownStyles(dropdown);
+        });
+      }, 100);
+    });
+  }
+
+  // Hàm áp dụng style cho dropdown trong dark mode
+  function applyDropdownStyles(dropdown) {
+    if (!document.body.classList.contains('dark-mode')) return;
+
+    // Fix cho thẻ select
+    if (dropdown.tagName === 'SELECT' || dropdown.classList.contains('form-select')) {
+      dropdown.style.backgroundColor = '#0f172a';
+      dropdown.style.color = '#f8fafc';
+      dropdown.style.borderColor = '#475569';
+
+      // Fix cho các option trong select
+      dropdown.querySelectorAll('option').forEach(option => {
+        option.style.backgroundColor = '#1e293b';
+        option.style.color = '#f8fafc';
+      });
+      return;
+    }
+
+    // Fix cho dropdown menu
+    dropdown.style.backgroundColor = '#1e293b';
+    dropdown.style.color = '#f8fafc';
+    dropdown.style.borderColor = '#475569';
+
+    // Fix các item trong dropdown
+    dropdown.querySelectorAll('.dropdown-item, li, a, span, .select2-results__option, [class*="option"]').forEach(item => {
+      item.style.backgroundColor = '#1e293b';
+      item.style.color = '#f8fafc';
+
+      // Thêm hover effect
+      item.addEventListener('mouseenter', () => {
+        item.style.backgroundColor = '#334155';
+      });
+
+      item.addEventListener('mouseleave', () => {
+        if (!item.classList.contains('active') && !item.classList.contains('selected')) {
+          item.style.backgroundColor = '#1e293b';
+        }
+      });
+    });
+
+    // Fix các item đã chọn
+    dropdown.querySelectorAll('.active, .selected, [aria-selected="true"]').forEach(selected => {
+      selected.style.backgroundColor = '#3b82f6';
+      selected.style.color = 'white';
+    });
+  }
+  
+  // Hàm mới: Khôi phục dropdown/select về màu sắc light mode
+  function fixDropdownsInLightMode() {
+    // Chỉ thực hiện nếu không ở dark mode
+    if (document.body.classList.contains('dark-mode')) return;
+    
+    // Xử lý các select và form-select 
+    document.querySelectorAll('select, .form-select').forEach(select => {
+      // Xóa các inline style đã áp dụng bởi dark mode
+      select.style.backgroundColor = '';
+      select.style.color = '';
+      select.style.borderColor = '';
+      
+      // Thêm lại các class và style cho light mode
+      select.classList.add('light-mode-select');
+      
+      // Xử lý các option
+      select.querySelectorAll('option').forEach(option => {
+        option.style.backgroundColor = '';
+        option.style.color = '';
+        
+        // Thêm listener cho hover effect
+        option.addEventListener('mouseenter', function() {
+          if (!this.selected) {
+            this.style.backgroundColor = 'var(--select-hover-bg-color)';
+          }
+        });
+        
+        option.addEventListener('mouseleave', function() {
+          if (!this.selected) {
+            this.style.backgroundColor = '';
+          }
+        });
+      });
+    });
+    
+    // Xử lý các dropdown menu
+    document.querySelectorAll('.dropdown-menu, .select2-dropdown, .multiselect-container').forEach(dropdown => {
+      // Xóa các inline style đã áp dụng bởi dark mode
+      dropdown.style.backgroundColor = '';
+      dropdown.style.color = '';
+      dropdown.style.borderColor = '';
+      
+      // Xử lý các item trong dropdown
+      dropdown.querySelectorAll('.dropdown-item, li, a, span, .select2-results__option, [class*="option"]').forEach(item => {
+        item.style.backgroundColor = '';
+        item.style.color = '';
+        
+        // Xóa các sự kiện cũ và thêm mới cho light mode
+        item.removeEventListener('mouseenter', () => {});
+        item.removeEventListener('mouseleave', () => {});
+        
+        item.addEventListener('mouseenter', function() {
+          if (!this.classList.contains('active') && !this.classList.contains('selected')) {
+            this.style.backgroundColor = 'var(--select-hover-bg-color)';
+          }
+        });
+        
+        item.addEventListener('mouseleave', function() {
+          if (!this.classList.contains('active') && !this.classList.contains('selected')) {
+            this.style.backgroundColor = '';
+          }
+        });
+      });
+      
+      // Xử lý cho item đã được chọn
+      dropdown.querySelectorAll('.active, .selected, [aria-selected="true"]').forEach(selected => {
+        selected.style.backgroundColor = 'var(--select-active-bg-color)';
+        selected.style.color = 'var(--select-active-text-color)';
+      });
+    });
+    
+    // Fix cho Bootstrap Select và các thư viện select khác
+    const selectObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+          for (let i = 0; i < mutation.addedNodes.length; i++) {
+            const node = mutation.addedNodes[i];
+            if (node.nodeType === 1 && (
+                node.classList && (
+                  node.classList.contains('dropdown-menu') ||
+                  node.classList.contains('select2-dropdown') ||
+                  node.classList.contains('multiselect-container')
+                )
+              )) {
+              // Đảm bảo dropdown mới cũng được style light mode
+              node.style.backgroundColor = '';
+              node.style.color = '';
+              node.style.borderColor = '';
+              
+              // Fix các item trong dropdown
+              node.querySelectorAll('*').forEach(item => {
+                item.style.backgroundColor = '';
+                item.style.color = '';
+              });
+            }
+          }
+        }
+      });
+    });
+    
+    // Bắt đầu theo dõi DOM
+    selectObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+  
+  // Áp dụng fix cho modal, datepicker và dropdown
+  fixDarkModeModalsNew();
+  if (document.body.classList.contains('dark-mode')) {
+    fixDatePickerInDarkMode();
+    fixDropdownsInDarkMode();
+  } else {
+    fixDropdownsInLightMode();
+  }
+  
+  // Theo dõi sự kiện click toàn cục để bắt các datepicker và dropdown
+  document.addEventListener('click', function(e) {
+    if (document.body.classList.contains('dark-mode')) {
+      // Kiểm tra nếu người dùng đang tương tác với date input
+      if (e.target.type === 'date' || 
+          e.target.dataset.provide === 'datepicker' || 
+          e.target.classList.contains('datepicker')) {
+        setTimeout(fixDatePickerInDarkMode, 100);
+      }
+
+      // Kiểm tra nếu người dùng đang tương tác với dropdown/select
+      if (e.target.tagName === 'SELECT' || 
+          e.target.classList.contains('dropdown-toggle') || 
+          e.target.closest('.dropdown') || 
+          e.target.classList.contains('form-select')) {
+        setTimeout(fixDropdownsInDarkMode, 100);
+      }
+    } else {
+      // Light mode: Fix cho dropdown và select
+      if (e.target.tagName === 'SELECT' || 
+          e.target.classList.contains('dropdown-toggle') || 
+          e.target.closest('.dropdown') || 
+          e.target.classList.contains('form-select')) {
+        setTimeout(fixDropdownsInLightMode, 100);
+      }
+    }
+  });
+});
+</script>
